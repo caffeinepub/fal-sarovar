@@ -2,10 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-customer-facing-account-entry-point-to-the-storefront-navigation-desktop-mobile-that-reflects-authentication-state-when-signed-out-show-a-clear-login-action-when-signed-in-show-account-and-a-logout-action",
-      "featureTitle": "Add a customer-facing Account entry point to the storefront navigation (desktop + mobile) that reflects authentication state: when signed out, show a clear \"Login\" action; when signed in, show \"Account\" and a \"Logout\" action.",
+      "featureId": "feature-update-the-admin-category-management-ui-to-allow-admins-to-add-edit-remove-a-category-image-image-upload-or-image-url-and-ensure-the-storefront-can-read-and-display-category-images-where-categories-are-shown",
+      "featureTitle": "Update the admin Category management UI to allow admins to add/edit/remove a category image (image upload or image URL) and ensure the storefront can read and display category images where categories are shown.",
       "files": [
-        "frontend/src/components/site/StorefrontHeader.tsx"
+        "frontend/src/hooks/queries/useCategories.ts",
+        "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+        "frontend/src/pages/storefront/MenuPage.tsx",
+        "frontend/src/utils/blob.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -13,19 +16,113 @@
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-16"
+        "REQ-23"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-a-new-customer-account-page-route-e-g-account-that-allows-an-authenticated-customer-to-view-and-edit-their-profile-fields-using-the-existing-backend-user-profile-apis-name-mobile-address",
-      "featureTitle": "Create a new customer Account page route (e.g., \"/account\") that allows an authenticated customer to view and edit their profile fields using the existing backend user profile APIs (name, mobile, address).",
+      "featureId": "feature-update-the-admin-product-management-ui-to-support-1-adding-editing-removing-multiple-product-images-via-upload-and-or-url-with-preview-and-2-adding-editing-removing-variants-per-product-with-variant-name-separate-price-and-enable-disable-toggle",
+      "featureTitle": "Update the admin Product management UI to support: (1) adding/editing/removing multiple product images (via upload and/or URL with preview) and (2) adding/editing/removing variants per product with variant name, separate price, and enable/disable toggle.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/hooks/queries/useAuth.ts",
+        "frontend/src/components/admin/ProductImagesEditor.tsx",
+        "frontend/src/components/admin/ProductVariantsEditor.tsx",
+        "frontend/src/hooks/queries/useProducts.ts",
+        "frontend/src/hooks/queries/useVariants.ts",
+        "frontend/src/pages/admin/AdminProductsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-24"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-storefront-product-purchase-flow-so-customers-must-choose-a-variant-size-before-adding-a-product-to-the-cart-and-the-displayed-price-updates-automatically-based-on-the-selected-variant",
+      "featureTitle": "Update the storefront product purchase flow so customers must choose a variant/size before adding a product to the cart, and the displayed price updates automatically based on the selected variant.",
+      "files": [
+        "frontend/src/components/storefront/ProductVariantPicker.tsx",
+        "frontend/src/hooks/queries/useVariants.ts",
+        "frontend/src/pages/storefront/MenuPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-25"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-cart-state-cart-ui-and-checkout-calculations-to-support-variant-aware-cart-items-product-chosen-variant-ensuring-totals-promo-code-discounts-and-order-placement-use-the-selected-variant-price",
+      "featureTitle": "Update cart state, cart UI, and checkout calculations to support variant-aware cart items (product + chosen variant), ensuring totals, promo code discounts, and order placement use the selected variant price.",
+      "files": [
+        "frontend/src/hooks/mutations/usePlaceOrder.ts",
+        "frontend/src/pages/storefront/CartPage.tsx",
+        "frontend/src/pages/storefront/CheckoutPage.tsx",
+        "frontend/src/state/cartStore.ts",
+        "frontend/src/state/useCart.ts",
+        "frontend/src/utils/exportOrders.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-26"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-storefront-menu-page-mobile-layout-to-show-a-compact-3-items-per-row-grid-with-smaller-product-cards-image-name-price-while-keeping-usability-tap-targets-readable-text-and-preserving-the-existing-layout-on-larger-breakpoints-unless-explicitly-overridden",
+      "featureTitle": "Update the storefront Menu page mobile layout to show a compact 3-items-per-row grid with smaller product cards (image + name + price) while keeping usability (tap targets, readable text) and preserving the existing layout on larger breakpoints unless explicitly overridden.",
+      "files": [
+        "frontend/src/index.css",
+        "frontend/src/pages/storefront/MenuPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-27"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-customer-visible-order-history-inside-the-existing-storefront-account-page-showing-the-authenticated-customer-s-past-orders-with-basic-details-date-status-total-items-and-variant-information-per-item",
+      "featureTitle": "Add customer-visible order history inside the existing storefront Account page, showing the authenticated customer’s past orders with basic details (date, status, total, items) and variant information per item.",
+      "files": [
+        "frontend/src/components/storefront/OrderHistory.tsx",
+        "frontend/src/hooks/queries/useOrders.ts",
+        "frontend/src/hooks/queries/useVariants.ts",
         "frontend/src/pages/storefront/AccountPage.tsx"
       ],
       "components": [
@@ -34,31 +131,11 @@
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-17"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-customer-authentication-state-changes-login-logout-correctly-invalidate-and-refetch-customer-profile-related-react-query-data-so-the-account-ui-always-shows-the-correct-user-s-data-after-switching-identities",
-      "featureTitle": "Ensure customer authentication state changes (login/logout) correctly invalidate and refetch customer-profile-related React Query data so the Account UI always shows the correct user’s data after switching identities.",
-      "files": [
-        "frontend/src/components/site/StorefrontHeader.tsx",
-        "frontend/src/hooks/queries/useAuth.ts",
-        "frontend/src/pages/storefront/AccountPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-18"
+        "REQ-28"
       ],
       "confidence": "high"
     }

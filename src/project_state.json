@@ -1,13 +1,15 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
-  "summary": "Build a production-ready full-stack online food ordering web app for the healthy brand “Fal Sarovar” with a premium green/fresh responsive customer storefront (home, menu, cart, checkout, contact) and a secure, beginner-friendly admin panel to manage categories, products, orders, customers, and promo codes, using React+Tailwind (or HTML/CSS/JS) and Firebase (Auth/Database/Hosting), with SEO-friendly fast UX and future-ready payments integration.",
+  "projectStateVersion": 7,
+  "summary": "Extend Fal Sarovar food ordering app to support richer catalog presentation and purchasing: category images, product image upload/management, multi-variant products (size/quantity with per-variant price and enable/disable), required variant selection before add-to-cart with dynamic pricing, customer order history, and a denser 3-items-per-row small-card product grid on mobile.",
   "architectural_notes": [
     "Use Firebase for backend services: Authentication (admin login), Database (products/categories/orders/customers/promo codes), and Hosting.",
     "Frontend to be built with React + Tailwind CSS (or HTML/CSS/JS) with a mobile-first responsive UI.",
     "Design data model to support category/product availability toggles and order status workflow (pending/accepted/completed).",
     "Keep architecture extensible for future payments integration (UPI/cards).",
-    "Decide whether customer accounts use Firebase Authentication (email/phone OTP) and add an Account section in the storefront for login/logout and viewing basic customer info/order history (if enabled)."
+    "Decide whether customer accounts use Firebase Authentication (email/phone OTP) and add an Account section in the storefront for login/logout and viewing basic customer info/order history (if enabled).",
+    "Extend product data model to support variants (name, price, enabled) and customer cart line-items referencing a selected variant.",
+    "Support asset storage/hosting for uploaded category and product images (including admin CRUD for image management)."
   ],
   "known_issues": [],
   "isFixRequest": false,
@@ -139,6 +141,54 @@
         "REQ-18"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-category-management-ui-to-allow-admins-to-add-edit-remove-a-category-image-image-upload-or-image-url-and-ensure-the-storefront-can-read-and-display-category-images-where-categories-are-shown",
+      "title": "Update the admin Category management UI to allow admins to add/edit/remove a category image (image upload or image URL) and ensure the storefront can read and display category images where categories are shown.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-product-management-ui-to-support-1-adding-editing-removing-multiple-product-images-via-upload-and-or-url-with-preview-and-2-adding-editing-removing-variants-per-product-with-variant-name-separate-price-and-enable-disable-toggle",
+      "title": "Update the admin Product management UI to support: (1) adding/editing/removing multiple product images (via upload and/or URL with preview) and (2) adding/editing/removing variants per product with variant name, separate price, and enable/disable toggle.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-storefront-product-purchase-flow-so-customers-must-choose-a-variant-size-before-adding-a-product-to-the-cart-and-the-displayed-price-updates-automatically-based-on-the-selected-variant",
+      "title": "Update the storefront product purchase flow so customers must choose a variant/size before adding a product to the cart, and the displayed price updates automatically based on the selected variant.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-cart-state-cart-ui-and-checkout-calculations-to-support-variant-aware-cart-items-product-chosen-variant-ensuring-totals-promo-code-discounts-and-order-placement-use-the-selected-variant-price",
+      "title": "Update cart state, cart UI, and checkout calculations to support variant-aware cart items (product + chosen variant), ensuring totals, promo code discounts, and order placement use the selected variant price.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-storefront-menu-page-mobile-layout-to-show-a-compact-3-items-per-row-grid-with-smaller-product-cards-image-name-price-while-keeping-usability-tap-targets-readable-text-and-preserving-the-existing-layout-on-larger-breakpoints-unless-explicitly-overridden",
+      "title": "Update the storefront Menu page mobile layout to show a compact 3-items-per-row grid with smaller product cards (image + name + price) while keeping usability (tap targets, readable text) and preserving the existing layout on larger breakpoints unless explicitly overridden.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-customer-visible-order-history-inside-the-existing-storefront-account-page-showing-the-authenticated-customer-s-past-orders-with-basic-details-date-status-total-items-and-variant-information-per-item",
+      "title": "Add customer-visible order history inside the existing storefront Account page, showing the authenticated customer’s past orders with basic details (date, status, total, items) and variant information per item.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -223,6 +273,60 @@
       "summary": "Update backend authorization rules so authenticated non-admin customers can call customer profile endpoints (getCallerUserProfile and saveCallerUserProfile) without hitting authorization traps, while keeping admin-only protections unchanged for admin features.",
       "reqIds": [
         "REQ-19"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Add customer order history viewing in the customer storefront (e.g., within Account or a dedicated Orders page) backed by stored order data.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Add category image support and management (admin can upload/edit category images; storefront displays category imagery).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Upgrade product image handling: admin product image upload plus easy add/edit/remove images (including support for multiple images per product if needed).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Implement multi-variant products (e.g., 500 ML Container, 650 ML Container, 350 ML Glass, Jumbo Size, Bread/Sandwich/Bowl) with per-variant name, separate price, enable/disable; customer must select a variant before adding to cart and price updates automatically; admin can add/edit/remove variants easily.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Update storefront product listing UI for mobile to use a smaller product card layout fitting 3 items per row (image + name + price compact).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Extend the backend data model to support category images, multi-image products, and per-product size/quantity variants with per-variant price and enable/disable.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Update backend order placement and order storage to persist the customer’s selected product variant (and the variant price used at time of order) for each ordered item.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Add a backend API that allows an authenticated customer to fetch their own order history for display in the storefront Account area, using the authenticated caller’s saved profile (e.g., mobile number) to match orders.",
+      "reqIds": [
+        "REQ-22"
       ],
       "status": "pending"
     }

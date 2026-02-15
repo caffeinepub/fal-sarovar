@@ -16,6 +16,27 @@ export function useGetAllOrders() {
   });
 }
 
+export function useGetCallerOrderHistory() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<Order[]>({
+    queryKey: ['callerOrderHistory'],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await actor.getCallerOrderHistory();
+      } catch (error: any) {
+        if (error.message?.includes('Unauthorized')) {
+          return [];
+        }
+        throw error;
+      }
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+}
+
 export function useGetNewOrderCount() {
   const { actor, isFetching: actorFetching } = useActor();
 
@@ -26,7 +47,7 @@ export function useGetNewOrderCount() {
       return actor.getNewOrderCount();
     },
     enabled: !!actor && !actorFetching,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
   });
 }
 

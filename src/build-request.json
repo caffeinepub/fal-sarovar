@@ -1,93 +1,192 @@
 {
   "kind": "build_request",
-  "title": "Add customer login/logout and Account option in storefront",
-  "priority": "normal",
+  "title": "Add multi-image + variant products, required variant selection, mobile 3-column menu grid, and customer order history",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-16",
-      "text": "Add a customer-facing Account entry point to the storefront navigation (desktop + mobile) that reflects authentication state: when signed out, show a clear \"Login\" action; when signed in, show \"Account\" and a \"Logout\" action.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "login and logout and account option ?"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Storefront header shows an Account/Login option alongside existing links (Home, Menu, Contact) on desktop.",
-        "Mobile menu includes the same Account/Login option.",
-        "When the user is not authenticated, the UI offers a \"Login\" action that initiates Internet Identity login via the existing auth hook.",
-        "When the user is authenticated, the UI offers a \"Logout\" action that logs the user out and updates the UI state accordingly without needing a page refresh."
-      ]
-    },
-    {
-      "id": "REQ-17",
-      "text": "Create a new customer Account page route (e.g., \"/account\") that allows an authenticated customer to view and edit their profile fields using the existing backend user profile APIs (name, mobile, address).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "login and logout and account option ?"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A new storefront route exists for an Account page and is reachable from the header Account option.",
-        "If the user is signed out and navigates to the Account page, the page prompts them to log in.",
-        "If the user is signed in, the page fetches and displays the caller’s existing profile (if any).",
-        "The page provides a form to save profile changes (name, mobile, address) and shows success/error feedback.",
-        "All user-facing text is in English."
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "text": "Ensure customer authentication state changes (login/logout) correctly invalidate and refetch customer-profile-related React Query data so the Account UI always shows the correct user’s data after switching identities.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "login and logout and account option ?"
-        ]
-      },
-      "acceptanceCriteria": [
-        "After login, the Account page loads the authenticated user’s profile without manual refresh.",
-        "After logout, the Account page and header state revert to signed-out state and do not show prior user data.",
-        "After logging in as a different identity, the Account page shows the new identity’s profile data (not cached from the prior identity)."
-      ]
-    },
-    {
-      "id": "REQ-19",
-      "text": "Update backend authorization rules so authenticated non-admin customers can call customer profile endpoints (getCallerUserProfile and saveCallerUserProfile) without hitting authorization traps, while keeping admin-only protections unchanged for admin features.",
+      "id": "REQ-20",
+      "text": "Extend the backend data model to support category images, multi-image products, and per-product size/quantity variants with per-variant price and enable/disable.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-9"
         ],
         "quotes": [
-          "login and logout and account option ?"
+          "While adding or editing products in the admin panel, include: Product image upload option; Multiple size / quantity variants for each product ... For each variant, allow: Variant name; Separate price; Enable / disable option"
         ]
       },
       "acceptanceCriteria": [
-        "An authenticated customer principal can successfully call getCallerUserProfile and receive null or their saved profile.",
-        "An authenticated customer principal can successfully call saveCallerUserProfile and subsequently retrieve the saved profile.",
-        "Admin-only APIs (e.g., category/product/promo/order management) remain restricted and do not become accessible to non-admin users."
+        "Category type includes an image field that can store an image reference (e.g., URL or data URL) and is returned by getAllCategories.",
+        "Product type supports multiple images (not just a single image string) and supports a list of variants.",
+        "A Variant has at least: stable identifier, variant name/label, price, enabled/disabled flag.",
+        "Existing APIs for listing products/categories continue to work for existing data (backward-compatible defaults such as empty images list / empty variants list)."
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "text": "Update backend order placement and order storage to persist the customer’s selected product variant (and the variant price used at time of order) for each ordered item.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-9"
+        ],
+        "quotes": [
+          "Customers must select size/quantity before adding to cart, and the price should update automatically."
+        ]
+      },
+      "acceptanceCriteria": [
+        "OrderProduct (or equivalent) stores the selected variant identifier (or variant name) for each item.",
+        "OrderProduct stores the unit price used (so past orders remain correct even if variant prices change later).",
+        "placeOrder accepts the variant selection for each ordered item and saves it in the stored order record."
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "text": "Add a backend API that allows an authenticated customer to fetch their own order history for display in the storefront Account area, using the authenticated caller’s saved profile (e.g., mobile number) to match orders.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "add one more thing customer can check order history"
+        ]
+      },
+      "acceptanceCriteria": [
+        "There is a query method that returns the caller’s orders sorted by newest first (most recent first).",
+        "The method does not require admin permissions and does not expose other customers’ orders.",
+        "If the caller has no profile/mobile (or no matching customer record), the method returns an empty list (or a clear, non-trapping result)."
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "text": "Update the admin Category management UI to allow admins to add/edit/remove a category image (image upload or image URL) and ensure the storefront can read and display category images where categories are shown.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "add categoery image"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin Categories page includes a category image field and a simple preview.",
+        "Admins can save changes and see the updated image after refresh.",
+        "Storefront category UI (e.g., menu category selectors or any category section that currently renders categories) can render the category image when available and gracefully falls back when not provided."
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "text": "Update the admin Product management UI to support: (1) adding/editing/removing multiple product images (via upload and/or URL with preview) and (2) adding/editing/removing variants per product with variant name, separate price, and enable/disable toggle.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-9"
+        ],
+        "quotes": [
+          "Admin should be able to add, edit, or remove images and variants easily."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin Products page supports managing multiple images per product (add, remove, reorder optional) and shows previews.",
+        "Admin Products page supports managing a list of variants per product with fields: name, price, enabled/disabled; variants can be created, edited, and removed.",
+        "Saving a product persists images + variants to the backend and reloading the product shows the same data.",
+        "Existing simple fields (name/category/description/healthBenefits/inStock) continue to work."
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "text": "Update the storefront product purchase flow so customers must choose a variant/size before adding a product to the cart, and the displayed price updates automatically based on the selected variant.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-9"
+        ],
+        "quotes": [
+          "Customers must select size/quantity before adding to cart, and the price should update automatically."
+        ]
+      },
+      "acceptanceCriteria": [
+        "If a product has variants, the Menu product dialog (and any other add-to-cart entry point) requires selecting an enabled variant before enabling the Add to Cart action.",
+        "The price displayed in the product dialog updates when a variant is selected.",
+        "If a product has no variants, add-to-cart works as before using the product’s base price.",
+        "Out-of-stock products still cannot be added and continue to show an out-of-stock state."
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "text": "Update cart state, cart UI, and checkout calculations to support variant-aware cart items (product + chosen variant), ensuring totals, promo code discounts, and order placement use the selected variant price.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-9"
+        ],
+        "quotes": [
+          "Customers must select size/quantity before adding to cart, and the price should update automatically."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Cart items are uniquely keyed by product + variant (so the same product with two different variants can exist as two lines).",
+        "Cart total uses the selected variant unit price (or base price for non-variant products).",
+        "Checkout order submission sends productId, quantity, selected variant info, and unit price per line item to backend placeOrder.",
+        "Order confirmation screen and admin order views remain functional and can display variant information per line item."
+      ]
+    },
+    {
+      "id": "REQ-27",
+      "text": "Update the storefront Menu page mobile layout to show a compact 3-items-per-row grid with smaller product cards (image + name + price) while keeping usability (tap targets, readable text) and preserving the existing layout on larger breakpoints unless explicitly overridden.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3",
+          "msg-4",
+          "msg-5"
+        ],
+        "quotes": [
+          "ONE MORE CHANGE IN MNEU, SIZE OF ITEMS  GRIDD SYETM LIKE 3 ITEM IN ONE RAW OK AND SIZE OF PRODUCTS SHOULD BE VERY SMALLER CAN BE FIT IN 3 PRODUCT WITH IMAGES IN ONE RAW",
+          "FOR MOBILE , the whole card (image + name + price",
+          "PROCEED"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On mobile widths, the Menu products grid renders 3 columns per row with a denser gap and smaller card padding than the current implementation.",
+        "Each card still shows product image (or fallback), name, and price in the compact layout.",
+        "Tap/click on a product still opens the product detail dialog and the Add action remains accessible.",
+        "On tablet/desktop, the grid remains sensible and does not become cramped."
+      ]
+    },
+    {
+      "id": "REQ-28",
+      "text": "Add customer-visible order history inside the existing storefront Account page, showing the authenticated customer’s past orders with basic details (date, status, total, items) and variant information per item.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "add one more thing customer can check order history"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Account page includes an Order History section visible only when logged in.",
+        "Order History fetches data from the backend ‘my orders’ API and renders newest-first.",
+        "Each order shows status and line items; each line item displays the selected variant label when present.",
+        "If there are no orders, show a clear empty state message in English."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (read-only shadcn components); compose them instead.",
-    "Do not edit frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts (immutable paths); use their public APIs from other components/pages.",
-    "Backend must remain a single Motoko actor in backend/main.mo; add migration logic only if state schema changes require it."
+    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
+    "Only generate backend/migration.mo if required for upgrading existing stable state due to type/schema changes.",
+    "Do not modify any frontend files under frontend/src/components/ui or any paths listed in frontend.immutablePaths.",
+    "Use English for all user-facing UI text."
   ],
   "nonGoals": [
-    "Do not add third-party authentication providers (only Internet Identity).",
-    "Do not implement payments or any external integrations as part of this change.",
-    "Do not add customer order-history/account features beyond basic profile + login/logout unless explicitly requested."
+    "Implementing online payments (UPI/cards) now.",
+    "Adding third-party authentication providers (only Internet Identity).",
+    "Adding real-time features such as WebSockets/push notifications.",
+    "External image hosting or external databases/services."
   ],
   "imageRequirements": {
     "required": [],

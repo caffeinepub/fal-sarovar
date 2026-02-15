@@ -1,76 +1,177 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T05:50:27.375Z",
+  "generatedAt": "2026-02-15T06:40:39.403Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 3,
+    "total": 9,
+    "implemented": 6,
     "items": [
       {
-        "id": "REQ-16",
-        "summary": "Add a customer-facing Account entry point to the storefront navigation (desktop + mobile) that reflects authentication state: when signed out, show a clear \"Login\" action; when signed in, show \"Account\" and a \"Logout\" action.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/site/StorefrontHeader.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/site/StorefrontHeader.tsx"
-        ]
-      },
-      {
-        "id": "REQ-17",
-        "summary": "Create a new customer Account page route (e.g., \"/account\") that allows an authenticated customer to view and edit their profile fields using the existing backend user profile APIs (name, mobile, address).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/storefront/AccountPage.tsx",
-          "frontend/src/hooks/queries/useAuth.ts",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/storefront/AccountPage.tsx",
-          "frontend/src/hooks/queries/useAuth.ts",
-          "frontend/src/App.tsx"
-        ]
-      },
-      {
-        "id": "REQ-18",
-        "summary": "Ensure customer authentication state changes (login/logout) correctly invalidate and refetch customer-profile-related React Query data so the Account UI always shows the correct user’s data after switching identities.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/site/StorefrontHeader.tsx",
-          "frontend/src/pages/storefront/AccountPage.tsx",
-          "frontend/src/hooks/queries/useAuth.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/site/StorefrontHeader.tsx",
-          "frontend/src/pages/storefront/AccountPage.tsx",
-          "frontend/src/hooks/queries/useAuth.ts"
-        ]
-      },
-      {
-        "id": "REQ-19",
-        "summary": "Update backend authorization rules so authenticated non-admin customers can call customer profile endpoints (getCallerUserProfile and saveCallerUserProfile) without hitting authorization traps, while keeping admin-only protections unchanged for admin features.",
+        "id": "REQ-20",
+        "summary": "Extend the backend data model to support category images, multi-image products, and per-product size/quantity variants with per-variant price and enable/disable.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
+      },
+      {
+        "id": "REQ-21",
+        "summary": "Update backend order placement and order storage to persist the customer’s selected product variant (and the variant price used at time of order) for each ordered item.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-22",
+        "summary": "Add a backend API that allows an authenticated customer to fetch their own order history for display in the storefront Account area, using the authenticated caller’s saved profile (e.g., mobile number) to match orders.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-23",
+        "summary": "Update the admin Category management UI to allow admins to add/edit/remove a category image (image upload or image URL) and ensure the storefront can read and display category images where categories are shown.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+          "frontend/src/hooks/queries/useCategories.ts",
+          "frontend/src/pages/storefront/MenuPage.tsx",
+          "frontend/src/utils/blob.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+          "frontend/src/hooks/queries/useCategories.ts",
+          "frontend/src/pages/storefront/MenuPage.tsx",
+          "frontend/src/utils/blob.ts"
+        ]
+      },
+      {
+        "id": "REQ-24",
+        "summary": "Update the admin Product management UI to support: (1) adding/editing/removing multiple product images (via upload and/or URL with preview) and (2) adding/editing/removing variants per product with variant name, separate price, and enable/disable toggle.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/admin/AdminProductsPage.tsx",
+          "frontend/src/hooks/queries/useProducts.ts",
+          "frontend/src/hooks/queries/useVariants.ts",
+          "frontend/src/components/admin/ProductVariantsEditor.tsx",
+          "frontend/src/components/admin/ProductImagesEditor.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/admin/AdminProductsPage.tsx",
+          "frontend/src/hooks/queries/useProducts.ts",
+          "frontend/src/hooks/queries/useVariants.ts",
+          "frontend/src/components/admin/ProductVariantsEditor.tsx",
+          "frontend/src/components/admin/ProductImagesEditor.tsx"
+        ]
+      },
+      {
+        "id": "REQ-25",
+        "summary": "Update the storefront product purchase flow so customers must choose a variant/size before adding a product to the cart, and the displayed price updates automatically based on the selected variant.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/storefront/MenuPage.tsx",
+          "frontend/src/components/storefront/ProductVariantPicker.tsx",
+          "frontend/src/hooks/queries/useVariants.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/storefront/MenuPage.tsx",
+          "frontend/src/components/storefront/ProductVariantPicker.tsx",
+          "frontend/src/hooks/queries/useVariants.ts"
+        ]
+      },
+      {
+        "id": "REQ-26",
+        "summary": "Update cart state, cart UI, and checkout calculations to support variant-aware cart items (product + chosen variant), ensuring totals, promo code discounts, and order placement use the selected variant price.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/state/cartStore.ts",
+          "frontend/src/state/useCart.ts",
+          "frontend/src/pages/storefront/CartPage.tsx",
+          "frontend/src/pages/storefront/CheckoutPage.tsx",
+          "frontend/src/hooks/mutations/usePlaceOrder.ts",
+          "frontend/src/pages/admin/AdminOrdersPage.tsx",
+          "frontend/src/utils/exportOrders.ts",
+          "frontend/src/pages/storefront/OrderConfirmationPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/state/cartStore.ts",
+          "frontend/src/state/useCart.ts",
+          "frontend/src/pages/storefront/CartPage.tsx",
+          "frontend/src/pages/storefront/CheckoutPage.tsx",
+          "frontend/src/hooks/mutations/usePlaceOrder.ts",
+          "frontend/src/utils/exportOrders.ts"
+        ]
+      },
+      {
+        "id": "REQ-27",
+        "summary": "Update the storefront Menu page mobile layout to show a compact 3-items-per-row grid with smaller product cards (image + name + price) while keeping usability (tap targets, readable text) and preserving the existing layout on larger breakpoints unless explicitly overridden.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/storefront/MenuPage.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/storefront/MenuPage.tsx",
+          "frontend/src/index.css"
+        ]
+      },
+      {
+        "id": "REQ-28",
+        "summary": "Add customer-visible order history inside the existing storefront Account page, showing the authenticated customer’s past orders with basic details (date, status, total, items) and variant information per item.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/queries/useOrders.ts",
+          "frontend/src/pages/storefront/AccountPage.tsx",
+          "frontend/src/components/storefront/OrderHistory.tsx",
+          "frontend/src/hooks/queries/useVariants.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/queries/useOrders.ts",
+          "frontend/src/pages/storefront/AccountPage.tsx",
+          "frontend/src/components/storefront/OrderHistory.tsx",
+          "frontend/src/hooks/queries/useVariants.ts"
+        ]
       }
     ]
   },
   "changedFiles": [
+    "backend/blob-storage/Mixin.mo",
+    "backend/blob-storage/Storage.mo",
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
-    "build-template/README.md",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/components/site/StorefrontHeader.tsx",
-    "frontend/src/hooks/queries/useAuth.ts",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/admin/ProductImagesEditor.tsx",
+    "frontend/src/components/admin/ProductVariantsEditor.tsx",
+    "frontend/src/components/storefront/OrderHistory.tsx",
+    "frontend/src/components/storefront/ProductVariantPicker.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/mutations/usePlaceOrder.ts",
+    "frontend/src/hooks/queries/useCategories.ts",
+    "frontend/src/hooks/queries/useOrders.ts",
+    "frontend/src/hooks/queries/useProducts.ts",
+    "frontend/src/hooks/queries/useVariants.ts",
+    "frontend/src/index.css",
+    "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+    "frontend/src/pages/admin/AdminProductsPage.tsx",
     "frontend/src/pages/storefront/AccountPage.tsx",
+    "frontend/src/pages/storefront/CartPage.tsx",
+    "frontend/src/pages/storefront/CheckoutPage.tsx",
+    "frontend/src/pages/storefront/HomePage.tsx",
+    "frontend/src/pages/storefront/MenuPage.tsx",
+    "frontend/src/state/cartStore.ts",
+    "frontend/src/state/useCart.ts",
+    "frontend/src/utils/blob.ts",
+    "frontend/src/utils/exportOrders.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

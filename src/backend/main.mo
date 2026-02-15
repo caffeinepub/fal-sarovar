@@ -10,34 +10,47 @@ import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Storage "blob-storage/Storage";
+import MixinStorage "blob-storage/Mixin";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
+  include MixinStorage();
+
   // Initialize the access control state
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
-  // User Profile Type
   public type UserProfile = {
     name : Text;
     mobile : ?Text;
     address : ?Text;
   };
 
-  // Data Structures
   public type Category = {
     id : Nat;
     name : Text;
     description : Text;
+    image : ?Storage.ExternalBlob;
   };
 
   public type Product = {
     id : Nat;
     name : Text;
     categoryId : Nat;
-    price : Float;
     description : Text;
     healthBenefits : Text;
-    image : Text;
+    images : [Storage.ExternalBlob];
+    inStock : Bool;
+  };
+
+  public type ProductVariant = {
+    id : Nat;
+    productId : Nat;
+    name : Text;
+    price : Float;
+    isActive : Bool;
     inStock : Bool;
   };
 
@@ -76,14 +89,16 @@ actor {
     orderDate : Time.Time;
     status : OrderStatus;
     isNew : Bool;
-    paymentMethod : ?Text; // Placeholder for future payment integration
-    paymentStatus : ?Text; // Placeholder for future payment integration
-    transactionReference : ?Text; // Placeholder for future payment integration
+    paymentMethod : ?Text;
+    paymentStatus : ?Text;
+    transactionReference : ?Text;
   };
 
   public type OrderProduct = {
     productId : Nat;
+    variantId : Nat;
     quantity : Nat;
+    price : Float;
   };
 
   module CategoryCompare {
@@ -119,10 +134,11 @@ actor {
     };
   };
 
-  // Persistent State using Core Collections
+  // Persistent State
   let userProfiles = Map.empty<Principal, UserProfile>();
   let categories = Map.empty<Nat, Category>();
   let products = Map.empty<Nat, Product>();
+  let variants = Map.empty<Nat, ProductVariant>();
   let promoCodes = Map.empty<Nat, PromoCode>();
   let customers = Map.empty<Nat, Customer>();
   let orders = Map.empty<Nat, Order>();
@@ -130,14 +146,13 @@ actor {
 
   var nextCategoryId = 1;
   var nextProductId = 1;
+  var nextVariantId = 1;
   var nextPromoCodeId = 1;
   var nextCustomerId = 1;
   var nextOrderId = 1;
 
   // User Profile Management
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    // Allow authenticated users (both #user and #admin) to access their profiles
-    // Guests (#guest) are not allowed
     let role = AccessControl.getUserRole(accessControlState, caller);
     switch (role) {
       case (#guest) {
@@ -157,8 +172,6 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    // Allow authenticated users (both #user and #admin) to save their profiles
-    // Guests (#guest) are not allowed
     let role = AccessControl.getUserRole(accessControlState, caller);
     switch (role) {
       case (#guest) {
@@ -171,7 +184,7 @@ actor {
   };
 
   // Category Management
-  public shared ({ caller }) func createCategory(name : Text, description : Text) : async Nat {
+  public shared ({ caller }) func createCategory(name : Text, description : Text, image : ?Storage.ExternalBlob) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can perform this action");
     };
@@ -182,13 +195,14 @@ actor {
       id;
       name;
       description;
+      image;
     };
 
     categories.add(id, category);
     id;
   };
 
-  public shared ({ caller }) func updateCategory(id : Nat, name : Text, description : Text) : async () {
+  public shared ({ caller }) func updateCategory(id : Nat, name : Text, description : Text, image : ?Storage.ExternalBlob) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can perform this action");
     };
@@ -196,6 +210,7 @@ actor {
       id;
       name;
       description;
+      image;
     };
 
     categories.add(id, category);
@@ -209,7 +224,6 @@ actor {
   };
 
   public query ({ caller }) func getAllCategories() : async [Category] {
-    // Public access - anyone can view categories
     categories.values().toArray().sort();
   };
 
@@ -217,10 +231,9 @@ actor {
   public shared ({ caller }) func createProduct(
     name : Text,
     categoryId : Nat,
-    price : Float,
     description : Text,
     healthBenefits : Text,
-    image : Text,
+    images : [Storage.ExternalBlob],
     inStock : Bool,
   ) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
@@ -233,10 +246,9 @@ actor {
       id;
       name;
       categoryId;
-      price;
       description;
       healthBenefits;
-      image;
+      images;
       inStock;
     };
 
@@ -248,10 +260,9 @@ actor {
     id : Nat,
     name : Text,
     categoryId : Nat,
-    price : Float,
     description : Text,
     healthBenefits : Text,
-    image : Text,
+    images : [Storage.ExternalBlob],
     inStock : Bool,
   ) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
@@ -261,10 +272,9 @@ actor {
       id;
       name;
       categoryId;
-      price;
       description;
       healthBenefits;
-      image;
+      images;
       inStock;
     };
 
@@ -279,18 +289,67 @@ actor {
   };
 
   public query ({ caller }) func getProductsByCategory(categoryId : Nat) : async [Product] {
-    // Public access - anyone can view products
     products.values().toArray().filter(func(p) { p.categoryId == categoryId });
   };
 
   public query ({ caller }) func getProduct(id : Nat) : async ?Product {
-    // Public access - anyone can view product details
     products.get(id);
   };
 
   public query ({ caller }) func getAllProducts() : async [Product] {
-    // Public access - anyone can view products
     products.values().toArray().sort();
+  };
+
+  // Variant Management
+  public shared ({ caller }) func createVariant(productId : Nat, name : Text, price : Float, isActive : Bool, inStock : Bool) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can perform this action");
+    };
+    let id = nextVariantId;
+    nextVariantId += 1;
+
+    let variant : ProductVariant = {
+      id;
+      productId;
+      name;
+      price;
+      isActive;
+      inStock;
+    };
+
+    variants.add(id, variant);
+    id;
+  };
+
+  public shared ({ caller }) func updateVariant(id : Nat, productId : Nat, name : Text, price : Float, isActive : Bool, inStock : Bool) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can perform this action");
+    };
+    let variant : ProductVariant = {
+      id;
+      productId;
+      name;
+      price;
+      isActive;
+      inStock;
+    };
+
+    variants.add(id, variant);
+  };
+
+  public shared ({ caller }) func deleteVariant(id : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can perform this action");
+    };
+    variants.remove(id);
+  };
+
+  public query ({ caller }) func getVariantsByProduct(productId : Nat) : async [ProductVariant] {
+    variants.values().toArray().filter(func(v) { v.productId == productId });
+  };
+
+  public query ({ caller }) func getVariant(id : Nat) : async ?ProductVariant {
+    variants.get(id);
   };
 
   // Promo Code Management
@@ -364,7 +423,6 @@ actor {
   };
 
   public query ({ caller }) func validatePromoCode(code : Text, orderAmount : Float) : async ?PromoCode {
-    // Public access - customers need to validate promo codes during checkout
     let promoOpt = promoCodes.values().toArray().find(func(p) { p.code == code });
     switch (promoOpt) {
       case (null) { null };
@@ -383,7 +441,7 @@ actor {
 
   // Customer Management
   public shared ({ caller }) func createCustomer(name : Text, mobile : Text, address : Text) : async Nat {
-    // Public access - guests can create customer records during checkout
+    // Allow guests to create customer records for checkout
     let id = nextCustomerId;
     nextCustomerId += 1;
 
@@ -407,7 +465,9 @@ actor {
   };
 
   public query ({ caller }) func getCustomerByMobile(mobile : Text) : async ?Customer {
-    // Public access - needed for order history lookup by phone
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can lookup customers by mobile");
+    };
     switch (customerByMobile.get(mobile)) {
       case (null) { null };
       case (?customerId) { customers.get(customerId) };
@@ -421,7 +481,7 @@ actor {
     totalAmount : Float,
     promoCodeId : ?Nat,
   ) : async Nat {
-    // Public access - guests and users can place orders
+    // Allow guests to place orders for e-commerce checkout
     let discountedAmount = switch (promoCodeId) {
       case (null) { null };
       case (?pcId) {
@@ -499,8 +559,41 @@ actor {
   };
 
   public query ({ caller }) func getOrdersByCustomer(customerId : Nat) : async [Order] {
-    // Public access - customers can view their own order history by phone lookup
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view orders by customer ID");
+    };
     orders.values().toArray().filter(func(order) { order.customerId == customerId }).sort(OrderCompare.compareByDate);
+  };
+
+  // New function: Authenticated customer fetches their own order history
+  public query ({ caller }) func getCallerOrderHistory() : async [Order] {
+    let role = AccessControl.getUserRole(accessControlState, caller);
+    switch (role) {
+      case (#guest) {
+        Runtime.trap("Unauthorized: Only authenticated users can view order history");
+      };
+      case (#user or #admin) {
+        // Get caller's profile to find their mobile number
+        switch (userProfiles.get(caller)) {
+          case (null) { [] }; // No profile, no orders
+          case (?profile) {
+            switch (profile.mobile) {
+              case (null) { [] }; // No mobile in profile
+              case (?mobile) {
+                // Find customer ID by mobile
+                switch (customerByMobile.get(mobile)) {
+                  case (null) { [] }; // No customer record
+                  case (?customerId) {
+                    // Return orders for this customer
+                    orders.values().toArray().filter(func(order) { order.customerId == customerId }).sort(OrderCompare.compareByDate);
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
   };
 
   public query ({ caller }) func getNewOrderCount() : async Nat {
@@ -510,3 +603,4 @@ actor {
     orders.values().toArray().filter(func(order) { order.isNew }).size();
   };
 };
+

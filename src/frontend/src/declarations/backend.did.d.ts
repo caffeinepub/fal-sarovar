@@ -14,6 +14,7 @@ export interface Category {
   'id' : bigint,
   'name' : string,
   'description' : string,
+  'image' : [] | [ExternalBlob],
 }
 export interface Customer {
   'id' : bigint,
@@ -21,6 +22,7 @@ export interface Customer {
   'address' : string,
   'mobile' : string,
 }
+export type ExternalBlob = Uint8Array;
 export interface Order {
   'id' : bigint,
   'status' : OrderStatus,
@@ -35,7 +37,12 @@ export interface Order {
   'products' : Array<OrderProduct>,
   'promoCodeId' : [] | [bigint],
 }
-export interface OrderProduct { 'productId' : bigint, 'quantity' : bigint }
+export interface OrderProduct {
+  'productId' : bigint,
+  'variantId' : bigint,
+  'quantity' : bigint,
+  'price' : number,
+}
 export type OrderStatus = { 'pending' : null } |
   { 'completed' : null } |
   { 'accepted' : null };
@@ -46,7 +53,14 @@ export interface Product {
   'healthBenefits' : string,
   'name' : string,
   'description' : string,
-  'image' : string,
+  'images' : Array<ExternalBlob>,
+}
+export interface ProductVariant {
+  'id' : bigint,
+  'inStock' : boolean,
+  'name' : string,
+  'productId' : bigint,
+  'isActive' : boolean,
   'price' : number,
 }
 export interface PromoCode {
@@ -67,13 +81,39 @@ export interface UserProfile {
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
+export interface _CaffeineStorageCreateCertificateResult {
+  'method' : string,
+  'blob_hash' : string,
+}
+export interface _CaffeineStorageRefillInformation {
+  'proposed_top_up_amount' : [] | [bigint],
+}
+export interface _CaffeineStorageRefillResult {
+  'success' : [] | [boolean],
+  'topped_up_amount' : [] | [bigint],
+}
 export interface _SERVICE {
+  '_caffeineStorageBlobIsLive' : ActorMethod<[Uint8Array], boolean>,
+  '_caffeineStorageBlobsToDelete' : ActorMethod<[], Array<Uint8Array>>,
+  '_caffeineStorageConfirmBlobDeletion' : ActorMethod<
+    [Array<Uint8Array>],
+    undefined
+  >,
+  '_caffeineStorageCreateCertificate' : ActorMethod<
+    [string],
+    _CaffeineStorageCreateCertificateResult
+  >,
+  '_caffeineStorageRefillCashier' : ActorMethod<
+    [[] | [_CaffeineStorageRefillInformation]],
+    _CaffeineStorageRefillResult
+  >,
+  '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'createCategory' : ActorMethod<[string, string], bigint>,
+  'createCategory' : ActorMethod<[string, string, [] | [ExternalBlob]], bigint>,
   'createCustomer' : ActorMethod<[string, string, string], bigint>,
   'createProduct' : ActorMethod<
-    [string, bigint, number, string, string, string, boolean],
+    [string, bigint, string, string, Array<ExternalBlob>, boolean],
     bigint
   >,
   'createPromoCode' : ActorMethod<
@@ -87,13 +127,19 @@ export interface _SERVICE {
     ],
     bigint
   >,
+  'createVariant' : ActorMethod<
+    [bigint, string, number, boolean, boolean],
+    bigint
+  >,
   'deleteCategory' : ActorMethod<[bigint], undefined>,
   'deleteProduct' : ActorMethod<[bigint], undefined>,
   'deletePromoCode' : ActorMethod<[bigint], undefined>,
+  'deleteVariant' : ActorMethod<[bigint], undefined>,
   'getAllCategories' : ActorMethod<[], Array<Category>>,
   'getAllOrders' : ActorMethod<[], Array<Order>>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
   'getAllPromoCodes' : ActorMethod<[], Array<PromoCode>>,
+  'getCallerOrderHistory' : ActorMethod<[], Array<Order>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCustomer' : ActorMethod<[bigint], [] | [Customer]>,
@@ -103,6 +149,8 @@ export interface _SERVICE {
   'getProduct' : ActorMethod<[bigint], [] | [Product]>,
   'getProductsByCategory' : ActorMethod<[bigint], Array<Product>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getVariant' : ActorMethod<[bigint], [] | [ProductVariant]>,
+  'getVariantsByProduct' : ActorMethod<[bigint], Array<ProductVariant>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'markOrderAsSeen' : ActorMethod<[bigint], undefined>,
   'placeOrder' : ActorMethod<
@@ -110,10 +158,13 @@ export interface _SERVICE {
     bigint
   >,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'updateCategory' : ActorMethod<[bigint, string, string], undefined>,
+  'updateCategory' : ActorMethod<
+    [bigint, string, string, [] | [ExternalBlob]],
+    undefined
+  >,
   'updateOrderStatus' : ActorMethod<[bigint, OrderStatus], undefined>,
   'updateProduct' : ActorMethod<
-    [bigint, string, bigint, number, string, string, string, boolean],
+    [bigint, string, bigint, string, string, Array<ExternalBlob>, boolean],
     undefined
   >,
   'updatePromoCode' : ActorMethod<
@@ -126,6 +177,10 @@ export interface _SERVICE {
       [] | [Time],
       boolean,
     ],
+    undefined
+  >,
+  'updateVariant' : ActorMethod<
+    [bigint, bigint, string, number, boolean, boolean],
     undefined
   >,
   'validatePromoCode' : ActorMethod<[string, number], [] | [PromoCode]>,

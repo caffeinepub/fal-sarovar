@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from '../useActor';
-import type { OrderProduct } from '@/backend';
+import type { OrderProduct, Customer } from '@/backend';
 import { toast } from 'sonner';
 
 interface PlaceOrderData {
@@ -20,18 +20,23 @@ export function usePlaceOrder() {
     mutationFn: async (data: PlaceOrderData) => {
       if (!actor) throw new Error('Actor not available');
 
-      // Check if customer exists by mobile
-      let customer = await actor.getCustomerByMobile(data.mobile);
+      let customer: Customer | null = null;
+      try {
+        customer = await actor.getCustomerByMobile(data.mobile);
+      } catch (error: any) {
+        if (!error.message?.includes('Unauthorized')) {
+          throw error;
+        }
+      }
+
       let customerId: bigint;
 
       if (customer) {
         customerId = customer.id;
       } else {
-        // Create new customer
         customerId = await actor.createCustomer(data.name, data.mobile, data.address);
       }
 
-      // Place the order
       const orderId = await actor.placeOrder(
         customerId,
         data.products,
@@ -43,6 +48,7 @@ export function usePlaceOrder() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['callerOrderHistory'] });
       queryClient.invalidateQueries({ queryKey: ['newOrderCount'] });
       toast.success('Order placed successfully!');
     },

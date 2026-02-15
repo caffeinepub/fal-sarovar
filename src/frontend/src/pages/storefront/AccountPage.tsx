@@ -1,148 +1,115 @@
 import { useState, useEffect } from 'react';
-import { useInternetIdentity } from '@/hooks/useInternetIdentity';
-import { useGetCallerUserProfile, useSaveCallerUserProfile } from '@/hooks/queries/useAuth';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LogIn, User, Save } from 'lucide-react';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import { Separator } from '@/components/ui/separator';
+import { useInternetIdentity } from '@/hooks/useInternetIdentity';
+import { useGetCallerUserProfile, useSaveCallerUserProfile } from '@/hooks/queries/useAuth';
+import { useGetCallerOrderHistory } from '@/hooks/queries/useOrders';
 import Seo from '@/components/seo/Seo';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import OrderHistory from '@/components/storefront/OrderHistory';
+import { User, Package, Loader2 } from 'lucide-react';
 
 export default function AccountPage() {
-  const { login, loginStatus, identity } = useInternetIdentity();
+  const { identity, login, loginStatus } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+  const { data: orders = [], isLoading: ordersLoading } = useGetCallerOrderHistory();
   const saveMutation = useSaveCallerUserProfile();
 
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [address, setAddress] = useState('');
 
-  const isAuthenticated = !!identity;
-  const isLoggingIn = loginStatus === 'logging-in';
-
-  // Update form when profile loads
   useEffect(() => {
     if (userProfile) {
-      setName(userProfile.name || '');
+      setName(userProfile.name);
       setMobile(userProfile.mobile || '');
       setAddress(userProfile.address || '');
-    } else if (isFetched && !userProfile) {
-      // Profile doesn't exist yet, keep form empty
-      setName('');
-      setMobile('');
-      setAddress('');
     }
-  }, [userProfile, isFetched]);
+  }, [userProfile]);
 
-  // Reset form when logged out
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setName('');
-      setMobile('');
-      setAddress('');
-    }
-  }, [isAuthenticated]);
-
-  const handleLogin = async () => {
-    try {
-      await login();
-    } catch (error: any) {
-      console.error('Login error:', error);
-    }
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!name.trim()) {
-      return;
-    }
-
-    saveMutation.mutate({
+  const handleSave = async () => {
+    await saveMutation.mutateAsync({
       name: name.trim(),
       mobile: mobile.trim() || undefined,
       address: address.trim() || undefined,
     });
   };
 
-  if (!isAuthenticated) {
+  if (!identity) {
     return (
       <>
-        <Seo title="Account - Fal Sarovar" description="Login to manage your account" />
-        <div className="container-custom py-12">
-          <div className="max-w-md mx-auto">
-            <Card>
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                  <User className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-2xl">Account</CardTitle>
-                <CardDescription>
-                  Please log in to view and manage your account
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={handleLogin} 
-                  disabled={isLoggingIn}
-                  className="w-full"
-                  size="lg"
-                >
-                  <LogIn className="mr-2 h-5 w-5" />
-                  {isLoggingIn ? 'Logging in...' : 'Login with Internet Identity'}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+        <Seo title="Account" description="Manage your account and view order history" />
+        <div className="container-custom section-padding">
+          <Card className="max-w-md mx-auto text-center py-12">
+            <CardContent className="space-y-6">
+              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto">
+                <User className="h-10 w-10 text-muted-foreground" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">Sign in to your account</h2>
+                <p className="text-muted-foreground">
+                  View your profile and order history
+                </p>
+              </div>
+              <Button
+                size="lg"
+                onClick={login}
+                disabled={loginStatus === 'logging-in'}
+              >
+                {loginStatus === 'logging-in' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </>
     );
   }
 
-  if (profileLoading) {
+  if (profileLoading || !isFetched) {
     return (
       <>
-        <Seo title="Account - Fal Sarovar" description="Manage your account" />
-        <LoadingSpinner />
+        <Seo title="Account" description="Manage your account and view order history" />
+        <div className="container-custom section-padding">
+          <LoadingSpinner />
+        </div>
       </>
     );
   }
 
   return (
     <>
-      <Seo title="Account - Fal Sarovar" description="Manage your account" />
-      <div className="container-custom py-12">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">My Account</h1>
-            <p className="text-muted-foreground">
-              Manage your profile information
-            </p>
-          </div>
+      <Seo title="Account" description="Manage your account and view order history" />
+      <div className="container-custom section-padding">
+        <h1 className="text-3xl md:text-4xl font-bold mb-8">My Account</h1>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Update your personal details below
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSave} className="space-y-6">
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">
-                    Name <span className="text-destructive">*</span>
-                  </Label>
+                  <Label htmlFor="name">Name *</Label>
                   <Input
                     id="name"
-                    type="text"
+                    placeholder="Your name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name"
-                    required
                   />
                 </div>
 
@@ -151,9 +118,9 @@ export default function AccountPage() {
                   <Input
                     id="mobile"
                     type="tel"
+                    placeholder="10-digit mobile number"
                     value={mobile}
                     onChange={(e) => setMobile(e.target.value)}
-                    placeholder="Enter your mobile number"
                   />
                 </div>
 
@@ -161,33 +128,48 @@ export default function AccountPage() {
                   <Label htmlFor="address">Address</Label>
                   <Textarea
                     id="address"
+                    placeholder="Your delivery address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Enter your address"
                     rows={4}
                   />
                 </div>
 
-                {!userProfile && (
-                  <Alert>
-                    <AlertDescription>
-                      This is your first time setting up your profile. Please provide at least your name.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <Button 
-                  type="submit" 
-                  disabled={saveMutation.isPending || !name.trim()}
+                <Button
+                  onClick={handleSave}
+                  disabled={!name.trim() || saveMutation.isPending}
                   className="w-full"
-                  size="lg"
                 >
-                  <Save className="mr-2 h-5 w-5" />
-                  {saveMutation.isPending ? 'Saving...' : 'Save Profile'}
+                  {saveMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </Button>
-              </form>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Order History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ordersLoading ? (
+                  <LoadingSpinner />
+                ) : (
+                  <OrderHistory orders={orders} />
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </>

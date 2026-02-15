@@ -7,15 +7,18 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface Customer {
+export class ExternalBlob {
+    getBytes(): Promise<Uint8Array<ArrayBuffer>>;
+    getDirectURL(): string;
+    static fromURL(url: string): ExternalBlob;
+    static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
+    withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
+}
+export interface Category {
     id: bigint;
     name: string;
-    address: string;
-    mobile: string;
-}
-export interface OrderProduct {
-    productId: bigint;
-    quantity: bigint;
+    description: string;
+    image?: ExternalBlob;
 }
 export type Time = bigint;
 export interface PromoCode {
@@ -32,11 +35,6 @@ export interface PromoCode {
     minOrderValue: number;
     isActive: boolean;
 }
-export interface Category {
-    id: bigint;
-    name: string;
-    description: string;
-}
 export interface Order {
     id: bigint;
     status: OrderStatus;
@@ -51,10 +49,25 @@ export interface Order {
     products: Array<OrderProduct>;
     promoCodeId?: bigint;
 }
-export interface UserProfile {
+export interface Customer {
+    id: bigint;
     name: string;
-    address?: string;
-    mobile?: string;
+    address: string;
+    mobile: string;
+}
+export interface ProductVariant {
+    id: bigint;
+    inStock: boolean;
+    name: string;
+    productId: bigint;
+    isActive: boolean;
+    price: number;
+}
+export interface OrderProduct {
+    productId: bigint;
+    variantId: bigint;
+    quantity: bigint;
+    price: number;
 }
 export interface Product {
     id: bigint;
@@ -63,8 +76,12 @@ export interface Product {
     healthBenefits: string;
     name: string;
     description: string;
-    image: string;
-    price: number;
+    images: Array<ExternalBlob>;
+}
+export interface UserProfile {
+    name: string;
+    address?: string;
+    mobile?: string;
 }
 export enum OrderStatus {
     pending = "pending",
@@ -78,9 +95,9 @@ export enum UserRole {
 }
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    createCategory(name: string, description: string): Promise<bigint>;
+    createCategory(name: string, description: string, image: ExternalBlob | null): Promise<bigint>;
     createCustomer(name: string, mobile: string, address: string): Promise<bigint>;
-    createProduct(name: string, categoryId: bigint, price: number, description: string, healthBenefits: string, image: string, inStock: boolean): Promise<bigint>;
+    createProduct(name: string, categoryId: bigint, description: string, healthBenefits: string, images: Array<ExternalBlob>, inStock: boolean): Promise<bigint>;
     createPromoCode(code: string, discountType: {
         __kind__: "flat";
         flat: number;
@@ -88,13 +105,16 @@ export interface backendInterface {
         __kind__: "percentage";
         percentage: number;
     }, minOrderValue: number, expiryDate: Time | null, isActive: boolean): Promise<bigint>;
+    createVariant(productId: bigint, name: string, price: number, isActive: boolean, inStock: boolean): Promise<bigint>;
     deleteCategory(id: bigint): Promise<void>;
     deleteProduct(id: bigint): Promise<void>;
     deletePromoCode(id: bigint): Promise<void>;
+    deleteVariant(id: bigint): Promise<void>;
     getAllCategories(): Promise<Array<Category>>;
     getAllOrders(): Promise<Array<Order>>;
     getAllProducts(): Promise<Array<Product>>;
     getAllPromoCodes(): Promise<Array<PromoCode>>;
+    getCallerOrderHistory(): Promise<Array<Order>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCustomer(id: bigint): Promise<Customer | null>;
@@ -104,13 +124,15 @@ export interface backendInterface {
     getProduct(id: bigint): Promise<Product | null>;
     getProductsByCategory(categoryId: bigint): Promise<Array<Product>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getVariant(id: bigint): Promise<ProductVariant | null>;
+    getVariantsByProduct(productId: bigint): Promise<Array<ProductVariant>>;
     isCallerAdmin(): Promise<boolean>;
     markOrderAsSeen(orderId: bigint): Promise<void>;
     placeOrder(customerId: bigint, products: Array<OrderProduct>, totalAmount: number, promoCodeId: bigint | null): Promise<bigint>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    updateCategory(id: bigint, name: string, description: string): Promise<void>;
+    updateCategory(id: bigint, name: string, description: string, image: ExternalBlob | null): Promise<void>;
     updateOrderStatus(orderId: bigint, status: OrderStatus): Promise<void>;
-    updateProduct(id: bigint, name: string, categoryId: bigint, price: number, description: string, healthBenefits: string, image: string, inStock: boolean): Promise<void>;
+    updateProduct(id: bigint, name: string, categoryId: bigint, description: string, healthBenefits: string, images: Array<ExternalBlob>, inStock: boolean): Promise<void>;
     updatePromoCode(id: bigint, code: string, discountType: {
         __kind__: "flat";
         flat: number;
@@ -118,5 +140,6 @@ export interface backendInterface {
         __kind__: "percentage";
         percentage: number;
     }, minOrderValue: number, expiryDate: Time | null, isActive: boolean): Promise<void>;
+    updateVariant(id: bigint, productId: bigint, name: string, price: number, isActive: boolean, inStock: boolean): Promise<void>;
     validatePromoCode(code: string, orderAmount: number): Promise<PromoCode | null>;
 }

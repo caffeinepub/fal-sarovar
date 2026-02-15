@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from '../useActor';
-import type { Product } from '@/backend';
+import type { Product, ExternalBlob } from '@/backend';
 import { toast } from 'sonner';
 
 export function useGetAllProducts() {
@@ -29,16 +29,16 @@ export function useGetProductsByCategory(categoryId: bigint | null) {
   });
 }
 
-export function useGetProduct(id: bigint | null) {
+export function useGetProduct(productId: bigint | null) {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<Product | null>({
-    queryKey: ['product', id?.toString()],
+    queryKey: ['product', productId?.toString()],
     queryFn: async () => {
-      if (!actor || id === null) return null;
-      return actor.getProduct(id);
+      if (!actor || productId === null) return null;
+      return actor.getProduct(productId);
     },
-    enabled: !!actor && !actorFetching && id !== null,
+    enabled: !!actor && !actorFetching && productId !== null,
   });
 }
 
@@ -50,20 +50,18 @@ export function useCreateProduct() {
     mutationFn: async (data: {
       name: string;
       categoryId: bigint;
-      price: number;
       description: string;
       healthBenefits: string;
-      image: string;
+      images: ExternalBlob[];
       inStock: boolean;
     }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.createProduct(
         data.name,
         data.categoryId,
-        data.price,
         data.description,
         data.healthBenefits,
-        data.image,
+        data.images,
         data.inStock
       );
     },
@@ -86,10 +84,9 @@ export function useUpdateProduct() {
       id: bigint;
       name: string;
       categoryId: bigint;
-      price: number;
       description: string;
       healthBenefits: string;
-      image: string;
+      images: ExternalBlob[];
       inStock: boolean;
     }) => {
       if (!actor) throw new Error('Actor not available');
@@ -97,10 +94,9 @@ export function useUpdateProduct() {
         data.id,
         data.name,
         data.categoryId,
-        data.price,
         data.description,
         data.healthBenefits,
-        data.image,
+        data.images,
         data.inStock
       );
     },

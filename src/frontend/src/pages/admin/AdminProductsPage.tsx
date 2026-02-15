@@ -10,12 +10,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetAllProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/queries/useProducts';
 import { useGetAllCategories } from '@/hooks/queries/useCategories';
 import AdminShell from '@/components/admin/AdminShell';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ProductImagesEditor from '@/components/admin/ProductImagesEditor';
+import ProductVariantsEditor from '@/components/admin/ProductVariantsEditor';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import type { Product } from '@/backend';
+import type { Product, ExternalBlob } from '@/backend';
+import { getBlobPreviewUrl } from '@/utils/blob';
 
 export default function AdminProductsPage() {
   const { data: products, isLoading: productsLoading } = useGetAllProducts();
@@ -31,10 +35,9 @@ export default function AdminProductsPage() {
 
   const [name, setName] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [healthBenefits, setHealthBenefits] = useState('');
-  const [image, setImage] = useState('');
+  const [images, setImages] = useState<ExternalBlob[]>([]);
   const [inStock, setInStock] = useState(true);
 
   const handleOpenDialog = (product?: Product) => {
@@ -42,19 +45,17 @@ export default function AdminProductsPage() {
       setEditingProduct(product);
       setName(product.name);
       setCategoryId(product.categoryId.toString());
-      setPrice(product.price.toString());
       setDescription(product.description);
       setHealthBenefits(product.healthBenefits);
-      setImage(product.image);
+      setImages(product.images);
       setInStock(product.inStock);
     } else {
       setEditingProduct(null);
       setName('');
       setCategoryId('');
-      setPrice('');
       setDescription('');
       setHealthBenefits('');
-      setImage('');
+      setImages([]);
       setInStock(true);
     }
     setDialogOpen(true);
@@ -65,23 +66,21 @@ export default function AdminProductsPage() {
     setEditingProduct(null);
     setName('');
     setCategoryId('');
-    setPrice('');
     setDescription('');
     setHealthBenefits('');
-    setImage('');
+    setImages([]);
     setInStock(true);
   };
 
   const handleSubmit = async () => {
-    if (!name.trim() || !categoryId || !price) return;
+    if (!name.trim() || !categoryId) return;
 
     const productData = {
       name: name.trim(),
       categoryId: BigInt(categoryId),
-      price: parseFloat(price),
       description: description.trim(),
       healthBenefits: healthBenefits.trim(),
-      image: image.trim(),
+      images,
       inStock,
     };
 
@@ -135,9 +134,9 @@ export default function AdminProductsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Image</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -145,11 +144,21 @@ export default function AdminProductsPage() {
                 <TableBody>
                   {products.map((product) => (
                     <TableRow key={product.id.toString()}>
+                      <TableCell>
+                        {product.images.length > 0 ? (
+                          <img
+                            src={getBlobPreviewUrl(product.images[0])}
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-muted rounded" />
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>
                         {categories?.find(c => c.id === product.categoryId)?.name || 'Unknown'}
                       </TableCell>
-                      <TableCell>₹{product.price.toFixed(2)}</TableCell>
                       <TableCell>
                         <Badge variant={product.inStock ? 'default' : 'destructive'}>
                           {product.inStock ? 'In Stock' : 'Out of Stock'}
@@ -186,87 +195,85 @@ export default function AdminProductsPage() {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingProduct ? 'Edit Product' : 'Create Product'}</DialogTitle>
             <DialogDescription>
               {editingProduct ? 'Update the product details below' : 'Add a new product to your catalog'}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input id="name" placeholder="Product name" value={name} onChange={(e) => setName(e.target.value)} />
+          
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="images">Images</TabsTrigger>
+              <TabsTrigger value="variants">Variants</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="details" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name *</Label>
+                  <Input id="name" placeholder="Product name" value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category *</Label>
+                  <Select value={categoryId} onValueChange={setCategoryId}>
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.map((cat) => (
+                        <SelectItem key={cat.id.toString()} value={cat.id.toString()}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
-                <Select value={categoryId} onValueChange={setCategoryId}>
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories?.map((cat) => (
-                      <SelectItem key={cat.id.toString()} value={cat.id.toString()}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Product description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="price">Price (₹) *</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Product description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="healthBenefits">Health Benefits</Label>
-              <Textarea
-                id="healthBenefits"
-                placeholder="Health benefits of this product"
-                value={healthBenefits}
-                onChange={(e) => setHealthBenefits(e.target.value)}
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="image">Image URL</Label>
-              <Input
-                id="image"
-                placeholder="https://example.com/image.jpg"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch id="inStock" checked={inStock} onCheckedChange={setInStock} />
-              <Label htmlFor="inStock">In Stock</Label>
-            </div>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="healthBenefits">Health Benefits</Label>
+                <Textarea
+                  id="healthBenefits"
+                  placeholder="Health benefits of this product"
+                  value={healthBenefits}
+                  onChange={(e) => setHealthBenefits(e.target.value)}
+                  rows={3}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch id="inStock" checked={inStock} onCheckedChange={setInStock} />
+                <Label htmlFor="inStock">In Stock</Label>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="images" className="mt-4">
+              <ProductImagesEditor images={images} onChange={setImages} />
+            </TabsContent>
+
+            <TabsContent value="variants" className="mt-4">
+              <ProductVariantsEditor productId={editingProduct?.id || null} />
+            </TabsContent>
+          </Tabs>
+
           <DialogFooter>
             <Button variant="outline" onClick={handleCloseDialog}>
               Cancel
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={!name.trim() || !categoryId || !price || createMutation.isPending || updateMutation.isPending}
+              disabled={!name.trim() || !categoryId || createMutation.isPending || updateMutation.isPending}
             >
               {editingProduct ? 'Update' : 'Create'}
             </Button>

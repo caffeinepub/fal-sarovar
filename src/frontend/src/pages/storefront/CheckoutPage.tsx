@@ -60,7 +60,9 @@ export default function CheckoutPage() {
 
     const orderProducts: OrderProduct[] = items.map(item => ({
       productId: item.product.id,
+      variantId: item.variantId || BigInt(0),
       quantity: BigInt(item.quantity),
+      price: item.unitPrice,
     }));
 
     try {
@@ -76,7 +78,7 @@ export default function CheckoutPage() {
       clearCart();
       navigate({ to: `/order-confirmation/${orderId}` });
     } catch (error) {
-      // Error is handled by the mutation
+      console.error('Order placement failed:', error);
     }
   };
 
@@ -96,9 +98,6 @@ export default function CheckoutPage() {
                   Add items to your cart before checking out
                 </p>
               </div>
-              <Button size="lg" onClick={() => navigate({ to: '/menu' })}>
-                Browse Menu
-              </Button>
             </CardContent>
           </Card>
         </div>
@@ -108,17 +107,16 @@ export default function CheckoutPage() {
 
   return (
     <>
-      <Seo title="Checkout" description="Complete your order and enter delivery details" />
+      <Seo title="Checkout" description="Complete your order" />
       <div className="container-custom section-padding">
         <h1 className="text-3xl md:text-4xl font-bold mb-8">Checkout</h1>
 
         <form onSubmit={handleSubmit}>
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Customer Details */}
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Customer Details</CardTitle>
+                  <CardTitle>Delivery Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -128,11 +126,10 @@ export default function CheckoutPage() {
                       placeholder="Enter your full name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      aria-invalid={!!errors.name}
-                      aria-describedby={errors.name ? 'name-error' : undefined}
+                      className={errors.name ? 'border-destructive' : ''}
                     />
                     {errors.name && (
-                      <p id="name-error" className="text-sm text-destructive">{errors.name}</p>
+                      <p className="text-sm text-destructive">{errors.name}</p>
                     )}
                   </div>
 
@@ -143,13 +140,11 @@ export default function CheckoutPage() {
                       type="tel"
                       placeholder="10-digit mobile number"
                       value={mobile}
-                      onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
-                      maxLength={10}
-                      aria-invalid={!!errors.mobile}
-                      aria-describedby={errors.mobile ? 'mobile-error' : undefined}
+                      onChange={(e) => setMobile(e.target.value)}
+                      className={errors.mobile ? 'border-destructive' : ''}
                     />
                     {errors.mobile && (
-                      <p id="mobile-error" className="text-sm text-destructive">{errors.mobile}</p>
+                      <p className="text-sm text-destructive">{errors.mobile}</p>
                     )}
                   </div>
 
@@ -161,42 +156,39 @@ export default function CheckoutPage() {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       rows={4}
-                      aria-invalid={!!errors.address}
-                      aria-describedby={errors.address ? 'address-error' : undefined}
+                      className={errors.address ? 'border-destructive' : ''}
                     />
                     {errors.address && (
-                      <p id="address-error" className="text-sm text-destructive">{errors.address}</p>
+                      <p className="text-sm text-destructive">{errors.address}</p>
                     )}
                   </div>
                 </CardContent>
               </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order Items</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {items.map((item) => (
-                    <div key={item.product.id.toString()} className="flex justify-between text-sm">
-                      <span>
-                        {item.product.name} × {item.quantity}
-                      </span>
-                      <span className="font-medium">
-                        ₹{(item.product.price * item.quantity).toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
             </div>
 
-            {/* Order Summary */}
             <div className="lg:col-span-1">
               <Card className="sticky top-20">
                 <CardHeader>
                   <CardTitle>Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    {items.map((item) => (
+                      <div
+                        key={`${item.product.id.toString()}-${item.variantId?.toString() || 'none'}`}
+                        className="flex justify-between text-sm"
+                      >
+                        <span className="text-muted-foreground">
+                          {item.product.name}
+                          {item.variantName && ` (${item.variantName})`} × {item.quantity}
+                        </span>
+                        <span className="font-medium">₹{(item.unitPrice * item.quantity).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Separator />
+
                   <PromoCodeBox 
                     orderAmount={subtotal}
                     onPromoApplied={setAppliedPromo}
@@ -224,14 +216,9 @@ export default function CheckoutPage() {
                     <span className="text-primary">₹{total.toFixed(2)}</span>
                   </div>
 
-                  <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
-                    <p className="font-medium mb-1">Payment Method</p>
-                    <p>Cash on Delivery (Online payments coming soon)</p>
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    size="lg" 
+                  <Button
+                    type="submit"
+                    size="lg"
                     className="w-full"
                     disabled={placeOrderMutation.isPending}
                   >

@@ -1,76 +1,206 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Customer auth entry point + Account page in storefront",
+  "title": "Storefront + Admin UI updates for multi-image/variants, variant-aware cart, mobile 3-col menu grid, and account order history",
   "requirements": [
     {
-      "id": "REQ-16",
-      "summary": "Add an Account/Login entry in storefront header (desktop + mobile) that reflects auth state and supports login/logout via Internet Identity.",
+      "id": "REQ-23",
+      "summary": "Add category image management in Admin Categories and render category images in storefront category selectors.",
       "acceptanceCriteria": [
-        "Storefront header shows an Account/Login option alongside existing links (Home, Menu, Contact) on desktop.",
-        "Mobile menu includes the same Account/Login option.",
-        "When the user is not authenticated, the UI offers a \"Login\" action that initiates Internet Identity login via the existing auth hook.",
-        "When the user is authenticated, the UI offers a \"Logout\" action that logs the user out and updates the UI state accordingly without needing a page refresh."
+        "Admin Categories page includes a category image field and a simple preview.",
+        "Admins can save changes and see the updated image after refresh.",
+        "Storefront category UI (e.g., menu category selectors or any category section that currently renders categories) can render the category image when available and gracefully falls back when not provided."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/site/StorefrontHeader.tsx",
+          "path": "frontend/src/pages/admin/AdminCategoriesPage.tsx",
           "operation": "modify",
-          "description": "Add a customer-facing Account/Login navigation item for desktop and mobile. Use the selected \"authorization\" component guidance for frontend auth UX by using the existing useInternetIdentity hook to detect identity, trigger login(), and trigger clear() on logout; also clear React Query cache on logout so UI updates immediately. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-17",
-      "summary": "Create a new /account storefront route that lets authenticated customers view and edit profile fields (name, mobile, address) using existing backend profile APIs.",
-      "acceptanceCriteria": [
-        "A new storefront route exists for an Account page and is reachable from the header Account option.",
-        "If the user is signed out and navigates to the Account page, the page prompts them to log in.",
-        "If the user is signed in, the page fetches and displays the caller’s existing profile (if any).",
-        "The page provides a form to save profile changes (name, mobile, address) and shows success/error feedback.",
-        "All user-facing text is in English."
-      ],
-      "file_operations": [
+          "description": "Extend the create/edit category dialog to support setting/clearing a category image (upload and/or URL), show a preview, and pass the selected image reference to the existing create/update flows. Use the blob-storage ExternalBlob to represent the image reference and enable previews via getDirectURL(); verify the component's usage instructions before implementing."
+        },
         {
-          "path": "frontend/src/pages/storefront/AccountPage.tsx",
+          "path": "frontend/src/hooks/queries/useCategories.ts",
+          "operation": "modify",
+          "description": "Update category create/update hooks to accept an optional category image reference and send it to the backend capability for create/update category, preserving existing behavior when no image is provided. Use the blob-storage ExternalBlob type on the frontend side; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/storefront/MenuPage.tsx",
+          "operation": "modify",
+          "description": "Update category tabs (or the existing category selector UI) to optionally render the category image when available, with a graceful fallback when missing. Use blob-storage ExternalBlob.getDirectURL() for display; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/utils/blob.ts",
           "operation": "create",
-          "description": "Implement the Account page UI: if unauthenticated, show a clear English login prompt and a Login action using useInternetIdentity. If authenticated, fetch profile via useGetCallerUserProfile and render an editable form for name, mobile, and address with save + success/error feedback. Use the selected \"authorization\" component guidance for profile setup/edit flows and for handling authorization failures gracefully. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/queries/useAuth.ts",
-          "operation": "modify",
-          "description": "Add a React Query mutation hook for saving the caller profile (saveCallerUserProfile) and invalidate/refetch the current user's profile query on success; surface save errors so the Account page can display English feedback. Use the selected \"authorization\" component guidance for profile query patterns and error handling. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Wire the new /account route into the TanStack Router storefront route tree (lazy-load the page similarly to Contact/Checkout) so it is reachable via navigation."
+          "description": "Add small frontend utilities for working with blob-storage ExternalBlob in UI flows (e.g., building an ExternalBlob from a URL, reading a selected file into bytes, and obtaining a safe preview URL). Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-18",
-      "summary": "Ensure login/logout changes invalidate and refetch profile-related React Query data so Account always shows the correct identity's data.",
+      "id": "REQ-24",
+      "summary": "Update Admin Products UI to manage multiple product images and per-product variants (name, price, enabled/disabled).",
       "acceptanceCriteria": [
-        "After login, the Account page loads the authenticated user’s profile without manual refresh.",
-        "After logout, the Account page and header state revert to signed-out state and do not show prior user data.",
-        "After logging in as a different identity, the Account page shows the new identity’s profile data (not cached from the prior identity)."
+        "Admin Products page supports managing multiple images per product (add, remove, reorder optional) and shows previews.",
+        "Admin Products page supports managing a list of variants per product with fields: name, price, enabled/disabled; variants can be created, edited, and removed.",
+        "Saving a product persists images + variants to the backend and reloading the product shows the same data.",
+        "Existing simple fields (name/category/description/healthBenefits/inStock) continue to work."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/site/StorefrontHeader.tsx",
+          "path": "frontend/src/pages/admin/AdminProductsPage.tsx",
           "operation": "modify",
-          "description": "On logout, clear React Query cached data (e.g., via queryClient.clear() or targeted removal of profile queries) immediately after calling useInternetIdentity.clear() so header/account state cannot display stale data. On login, handle the 'User is already authenticated' error by clearing and retrying login (pattern used in AdminLoginPage). Use the selected \"authorization\" component guidance for clearing cached application data on logout. Verify the component's usage instructions before implementing."
+          "description": "Refactor the product create/edit dialog to manage an array of product images (upload and/or URL) with previews, plus a variants editor (add/edit/remove) supporting variant name, price, and enabled/disabled toggle. Use blob-storage ExternalBlob for images (preview via getDirectURL()) and wire variant actions via new variant hooks; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/queries/useProducts.ts",
+          "operation": "modify",
+          "description": "Update product create/update hooks to send an images array (multi-image) and keep all existing simple fields functional. Ensure the hooks remain compatible with existing UI callers (or update callers accordingly). Use blob-storage ExternalBlob for images; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/queries/useVariants.ts",
+          "operation": "create",
+          "description": "Add React Query hooks for variant management (fetch variants by product; create/update/delete variant) for use by the Admin Products page and storefront variant selection. Verify authorization behavior via the existing authorization/auth hooks and handle traps gracefully; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/admin/ProductVariantsEditor.tsx",
+          "operation": "create",
+          "description": "Create an admin-only, reusable variants editor section used by AdminProductsPage for managing a product’s variants (name, price, enabled/disabled, in-stock if exposed). Ensure it is used (not orphaned) by AdminProductsPage. Verify any relevant shadcn-ui component usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/admin/ProductImagesEditor.tsx",
+          "operation": "create",
+          "description": "Create an admin-only, reusable images editor section used by AdminProductsPage for managing a product’s multiple images (add via upload/URL, remove, preview; optional reorder). Use blob-storage ExternalBlob and preview via getDirectURL(); verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "summary": "Require selecting an enabled variant before adding to cart, and update displayed price based on selected variant.",
+      "acceptanceCriteria": [
+        "If a product has variants, the Menu product dialog (and any other add-to-cart entry point) requires selecting an enabled variant before enabling the Add to Cart action.",
+        "The price displayed in the product dialog updates when a variant is selected.",
+        "If a product has no variants, add-to-cart works as before using the product’s base price.",
+        "Out-of-stock products still cannot be added and continue to show an out-of-stock state."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/storefront/MenuPage.tsx",
+          "operation": "modify",
+          "description": "Update product card and product detail dialog add-to-cart flow to (a) load variants for the selected product, (b) require selecting an enabled variant before enabling Add to Cart when variants exist, (c) update displayed price based on selected variant, and (d) preserve behavior for non-variant products. Use existing dialog and button components; verify any shadcn-ui component usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/storefront/ProductVariantPicker.tsx",
+          "operation": "create",
+          "description": "Add a storefront component for selecting a product variant (shows enabled variants, exposes selected variant, and supports price display updates). Ensure it is wired into MenuPage (and any other add-to-cart UI that must enforce variant selection). Verify any relevant shadcn-ui component usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/queries/useVariants.ts",
+          "operation": "modify",
+          "description": "Ensure the variants query hook supports storefront usage (e.g., enabled/disabled filtering and loading states) without breaking admin usage. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "summary": "Make cart, checkout totals, promo discounts, and order placement variant-aware (product + chosen variant, using variant price).",
+      "acceptanceCriteria": [
+        "Cart items are uniquely keyed by product + variant (so the same product with two different variants can exist as two lines).",
+        "Cart total uses the selected variant unit price (or base price for non-variant products).",
+        "Checkout order submission sends productId, quantity, selected variant info, and unit price per line item to backend placeOrder.",
+        "Order confirmation screen and admin order views remain functional and can display variant information per line item."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/state/cartStore.ts",
+          "operation": "modify",
+          "description": "Update the cart data model to store variant-aware line items (productId + variantId or a clear non-variant marker), store unit price used, and key uniqueness by (product, variant). Update add/remove/update/getTotal logic accordingly while keeping persistence stable (migrate old stored items safely where possible)."
+        },
+        {
+          "path": "frontend/src/state/useCart.ts",
+          "operation": "modify",
+          "description": "Update the cart convenience hook to expose variant-aware add/update/remove APIs and any derived helpers needed by UI (e.g., cart item display name including variant label when present)."
+        },
+        {
+          "path": "frontend/src/pages/storefront/CartPage.tsx",
+          "operation": "modify",
+          "description": "Render variant-aware cart lines (show variant label when present), compute per-line and totals using the stored unit price, and ensure quantity adjustments/removal operate on the correct (product + variant) key."
+        },
+        {
+          "path": "frontend/src/pages/storefront/CheckoutPage.tsx",
+          "operation": "modify",
+          "description": "Update checkout item list and subtotal/total calculations to use variant-aware cart prices. Ensure the order submission payload includes productId, quantity, variantId (or equivalent), and unit price per line item."
+        },
+        {
+          "path": "frontend/src/hooks/mutations/usePlaceOrder.ts",
+          "operation": "modify",
+          "description": "Update order placement mutation to accept and forward variant-aware order products (including variant selection and unit price) while preserving existing customer creation/lookup behavior."
+        },
+        {
+          "path": "frontend/src/pages/admin/AdminOrdersPage.tsx",
+          "operation": "modify",
+          "description": "Keep admin orders view functional with the updated order product shape; enhance display to show variant information per order line item where it is shown/expanded (or in exported data), falling back gracefully when variant info is missing."
+        },
+        {
+          "path": "frontend/src/utils/exportOrders.ts",
+          "operation": "modify",
+          "description": "Update CSV export generation to include variant identifiers/labels and unit price per item when available, while remaining compatible with orders that do not contain variant data."
+        },
+        {
+          "path": "frontend/src/pages/storefront/OrderConfirmationPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the confirmation page remains functional after variant-aware order placement changes (no crashes due to updated payloads/IDs). If any order details are shown in the future, ensure variant info can be displayed safely."
+        }
+      ]
+    },
+    {
+      "id": "REQ-27",
+      "summary": "Implement a compact mobile 3-column products grid in Menu while preserving sensible larger-breakpoint layouts.",
+      "acceptanceCriteria": [
+        "On mobile widths, the Menu products grid renders 3 columns per row with a denser gap and smaller card padding than the current implementation.",
+        "Each card still shows product image (or fallback), name, and price in the compact layout.",
+        "Tap/click on a product still opens the product detail dialog and the Add action remains accessible.",
+        "On tablet/desktop, the grid remains sensible and does not become cramped."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/storefront/MenuPage.tsx",
+          "operation": "modify",
+          "description": "Adjust the Menu products grid and product card styling for mobile to a dense 3-column layout (smaller gaps/padding/typography) while keeping current behavior on larger breakpoints. Ensure the entire card remains tappable to open the dialog and the Add action remains usable."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "If needed, add small, reusable utility styles (or adjust existing theme utilities) to support the denser mobile card layout without changing any files under frontend/src/components/ui."
+        }
+      ]
+    },
+    {
+      "id": "REQ-28",
+      "summary": "Add an authenticated customer Order History section inside the existing Account page.",
+      "acceptanceCriteria": [
+        "Account page includes an Order History section visible only when logged in.",
+        "Order History fetches data from the backend ‘my orders’ API and renders newest-first.",
+        "Each order shows status and line items; each line item displays the selected variant label when present.",
+        "If there are no orders, show a clear empty state message in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/queries/useOrders.ts",
+          "operation": "modify",
+          "description": "Add a React Query hook to fetch the authenticated caller’s order history from the backend capability (newest-first as returned). Ensure it is only enabled when an actor is available and handle authorization traps/errors gracefully, aligning with the authorization/auth flow; verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/pages/storefront/AccountPage.tsx",
           "operation": "modify",
-          "description": "Ensure the Account page derives its displayed form state from the authenticated profile query keyed by the current principal and resets local form state when identity becomes unavailable, preventing prior identity data from lingering after logout/switch. Use the selected \"authorization\" component guidance for avoiding stale/flashy profile UI and for dependency-aware query loading states. Verify the component's usage instructions before implementing."
+          "description": "Add an Order History section to the authenticated Account view that loads and renders the caller’s orders newest-first, includes basic order details (date, status, total, items), and shows variant labels per line item when present. Show an English empty state when there are no orders."
         },
         {
-          "path": "frontend/src/hooks/queries/useAuth.ts",
+          "path": "frontend/src/components/storefront/OrderHistory.tsx",
+          "operation": "create",
+          "description": "Create a reusable Order History component used by AccountPage to render orders and line items, including variant labels when present. Ensure it is wired into AccountPage (no orphan component). Verify any relevant shadcn-ui component usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/queries/useVariants.ts",
           "operation": "modify",
-          "description": "Confirm queryKey scoping includes the current principal and that save mutations invalidate the same scoped key; ensure profile queries are disabled when not authenticated to avoid showing cached results for signed-out users. Use the selected \"authorization\" component guidance for principal-scoped query keys and cache clearing expectations. Verify the component's usage instructions before implementing."
+          "description": "Extend variant querying helpers as needed to support mapping variantId to variant name for order history rendering (e.g., batched per-product variant lookups via existing backend capability). Verify the component's usage instructions before implementing."
         }
       ]
     }

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from '../useActor';
-import type { Category } from '@/backend';
+import type { Category, ExternalBlob } from '@/backend';
 import { toast } from 'sonner';
 
 export function useGetAllCategories() {
@@ -21,9 +21,9 @@ export function useCreateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ name, description }: { name: string; description: string }) => {
+    mutationFn: async (data: { name: string; description: string; image?: ExternalBlob }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createCategory(name, description);
+      return actor.createCategory(data.name, data.description, data.image || null);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
@@ -40,9 +40,9 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, name, description }: { id: bigint; name: string; description: string }) => {
+    mutationFn: async (data: { id: bigint; name: string; description: string; image?: ExternalBlob }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateCategory(id, name, description);
+      return actor.updateCategory(data.id, data.name, data.description, data.image || null);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });

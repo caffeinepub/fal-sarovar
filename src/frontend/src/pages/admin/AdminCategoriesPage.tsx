@@ -38,8 +38,9 @@ import {
 } from '@/hooks/queries/useCategories';
 import AdminShell from '@/components/admin/AdminShell';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
-import type { Category } from '@/backend';
+import { Plus, Pencil, Trash2, Upload, X } from 'lucide-react';
+import type { Category, ExternalBlob } from '@/backend';
+import { fileToExternalBlob, urlToExternalBlob, getBlobPreviewUrl } from '@/utils/blob';
 
 export default function AdminCategoriesPage() {
   const { data: categories, isLoading } = useGetAllCategories();
@@ -54,16 +55,22 @@ export default function AdminCategoriesPage() {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [image, setImage] = useState<ExternalBlob | undefined>(undefined);
+  const [imageUrl, setImageUrl] = useState('');
 
   const handleOpenDialog = (category?: Category) => {
     if (category) {
       setEditingCategory(category);
       setName(category.name);
       setDescription(category.description);
+      setImage(category.image);
+      setImageUrl('');
     } else {
       setEditingCategory(null);
       setName('');
       setDescription('');
+      setImage(undefined);
+      setImageUrl('');
     }
     setDialogOpen(true);
   };
@@ -73,6 +80,22 @@ export default function AdminCategoriesPage() {
     setEditingCategory(null);
     setName('');
     setDescription('');
+    setImage(undefined);
+    setImageUrl('');
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const blob = await fileToExternalBlob(file);
+    setImage(blob);
+  };
+
+  const handleAddUrl = () => {
+    if (!imageUrl.trim()) return;
+    const blob = urlToExternalBlob(imageUrl.trim());
+    setImage(blob);
+    setImageUrl('');
   };
 
   const handleSubmit = async () => {
@@ -83,11 +106,13 @@ export default function AdminCategoriesPage() {
         id: editingCategory.id,
         name: name.trim(),
         description: description.trim(),
+        image,
       });
     } else {
       await createMutation.mutateAsync({
         name: name.trim(),
         description: description.trim(),
+        image,
       });
     }
 
@@ -134,6 +159,7 @@ export default function AdminCategoriesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Image</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -142,6 +168,17 @@ export default function AdminCategoriesPage() {
                 <TableBody>
                   {categories.map((category) => (
                     <TableRow key={category.id.toString()}>
+                      <TableCell>
+                        {category.image ? (
+                          <img
+                            src={getBlobPreviewUrl(category.image)}
+                            alt={category.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-muted rounded" />
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">{category.name}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {category.description}
@@ -180,7 +217,6 @@ export default function AdminCategoriesPage() {
         </Card>
       </div>
 
-      {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -213,6 +249,55 @@ export default function AdminCategoriesPage() {
                 rows={3}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Category Image</Label>
+              {image && (
+                <div className="relative w-32 h-32 bg-muted rounded-lg overflow-hidden">
+                  <img
+                    src={getBlobPreviewUrl(image)}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-1 right-1 h-6 w-6"
+                    onClick={() => setImage(undefined)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="category-image-upload"
+                />
+                <Label htmlFor="category-image-upload" className="flex-1">
+                  <Button type="button" variant="outline" className="w-full gap-2" asChild>
+                    <span>
+                      <Upload className="h-4 w-4" />
+                      Upload Image
+                    </span>
+                  </Button>
+                </Label>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Or paste image URL"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddUrl()}
+                />
+                <Button type="button" variant="outline" onClick={handleAddUrl} disabled={!imageUrl.trim()}>
+                  Add
+                </Button>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCloseDialog}>
@@ -228,7 +313,6 @@ export default function AdminCategoriesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

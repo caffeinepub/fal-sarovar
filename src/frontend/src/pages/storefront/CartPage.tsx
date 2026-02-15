@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/state/useCart';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
@@ -9,6 +8,7 @@ import Seo from '@/components/seo/Seo';
 import PromoCodeBox from '@/components/storefront/PromoCodeBox';
 import { useState } from 'react';
 import type { PromoCode } from '@/backend';
+import { getBlobPreviewUrl } from '@/utils/blob';
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, getTotal } = useCart();
@@ -57,29 +57,33 @@ export default function CartPage() {
         <h1 className="text-3xl md:text-4xl font-bold mb-8">Shopping Cart</h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => (
-              <Card key={item.product.id.toString()}>
+              <Card key={`${item.product.id.toString()}-${item.variantId?.toString() || 'none'}`}>
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                      {item.product.image && (
+                      {item.product.images.length > 0 && (
                         <img 
-                          src={item.product.image} 
+                          src={getBlobPreviewUrl(item.product.images[0])} 
                           alt={item.product.name}
                           className="w-full h-full object-cover"
                         />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-lg mb-1">{item.product.name}</h3>
+                      <h3 className="font-semibold text-lg mb-1">
+                        {item.product.name}
+                        {item.variantName && (
+                          <span className="text-sm text-muted-foreground ml-2">({item.variantName})</span>
+                        )}
+                      </h3>
                       <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                         {item.product.description}
                       </p>
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-primary">
-                          ₹{item.product.price.toFixed(2)}
+                          ₹{item.unitPrice.toFixed(2)}
                         </span>
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2 border rounded-lg">
@@ -87,7 +91,7 @@ export default function CartPage() {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8"
-                              onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variantId || undefined)}
                             >
                               <Minus className="h-4 w-4" />
                             </Button>
@@ -96,7 +100,7 @@ export default function CartPage() {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8"
-                              onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variantId || undefined)}
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
@@ -105,7 +109,7 @@ export default function CartPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => removeItem(item.product.id)}
+                            onClick={() => removeItem(item.product.id, item.variantId || undefined)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -118,7 +122,6 @@ export default function CartPage() {
             ))}
           </div>
 
-          {/* Order Summary */}
           <div className="lg:col-span-1">
             <Card className="sticky top-20">
               <CardHeader>
