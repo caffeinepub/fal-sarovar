@@ -1,0 +1,78 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Customer auth entry point + Account page in storefront",
+  "requirements": [
+    {
+      "id": "REQ-16",
+      "summary": "Add an Account/Login entry in storefront header (desktop + mobile) that reflects auth state and supports login/logout via Internet Identity.",
+      "acceptanceCriteria": [
+        "Storefront header shows an Account/Login option alongside existing links (Home, Menu, Contact) on desktop.",
+        "Mobile menu includes the same Account/Login option.",
+        "When the user is not authenticated, the UI offers a \"Login\" action that initiates Internet Identity login via the existing auth hook.",
+        "When the user is authenticated, the UI offers a \"Logout\" action that logs the user out and updates the UI state accordingly without needing a page refresh."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/site/StorefrontHeader.tsx",
+          "operation": "modify",
+          "description": "Add a customer-facing Account/Login navigation item for desktop and mobile. Use the selected \"authorization\" component guidance for frontend auth UX by using the existing useInternetIdentity hook to detect identity, trigger login(), and trigger clear() on logout; also clear React Query cache on logout so UI updates immediately. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "summary": "Create a new /account storefront route that lets authenticated customers view and edit profile fields (name, mobile, address) using existing backend profile APIs.",
+      "acceptanceCriteria": [
+        "A new storefront route exists for an Account page and is reachable from the header Account option.",
+        "If the user is signed out and navigates to the Account page, the page prompts them to log in.",
+        "If the user is signed in, the page fetches and displays the caller’s existing profile (if any).",
+        "The page provides a form to save profile changes (name, mobile, address) and shows success/error feedback.",
+        "All user-facing text is in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/storefront/AccountPage.tsx",
+          "operation": "create",
+          "description": "Implement the Account page UI: if unauthenticated, show a clear English login prompt and a Login action using useInternetIdentity. If authenticated, fetch profile via useGetCallerUserProfile and render an editable form for name, mobile, and address with save + success/error feedback. Use the selected \"authorization\" component guidance for profile setup/edit flows and for handling authorization failures gracefully. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/queries/useAuth.ts",
+          "operation": "modify",
+          "description": "Add a React Query mutation hook for saving the caller profile (saveCallerUserProfile) and invalidate/refetch the current user's profile query on success; surface save errors so the Account page can display English feedback. Use the selected \"authorization\" component guidance for profile query patterns and error handling. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the new /account route into the TanStack Router storefront route tree (lazy-load the page similarly to Contact/Checkout) so it is reachable via navigation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "summary": "Ensure login/logout changes invalidate and refetch profile-related React Query data so Account always shows the correct identity's data.",
+      "acceptanceCriteria": [
+        "After login, the Account page loads the authenticated user’s profile without manual refresh.",
+        "After logout, the Account page and header state revert to signed-out state and do not show prior user data.",
+        "After logging in as a different identity, the Account page shows the new identity’s profile data (not cached from the prior identity)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/site/StorefrontHeader.tsx",
+          "operation": "modify",
+          "description": "On logout, clear React Query cached data (e.g., via queryClient.clear() or targeted removal of profile queries) immediately after calling useInternetIdentity.clear() so header/account state cannot display stale data. On login, handle the 'User is already authenticated' error by clearing and retrying login (pattern used in AdminLoginPage). Use the selected \"authorization\" component guidance for clearing cached application data on logout. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/storefront/AccountPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the Account page derives its displayed form state from the authenticated profile query keyed by the current principal and resets local form state when identity becomes unavailable, preventing prior identity data from lingering after logout/switch. Use the selected \"authorization\" component guidance for avoiding stale/flashy profile UI and for dependency-aware query loading states. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/queries/useAuth.ts",
+          "operation": "modify",
+          "description": "Confirm queryKey scoping includes the current principal and that save mutations invalidate the same scoped key; ensure profile queries are disabled when not authenticated to avoid showing cached results for signed-out users. Use the selected \"authorization\" component guidance for principal-scoped query keys and cache clearing expectations. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

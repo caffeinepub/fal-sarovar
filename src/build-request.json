@@ -1,0 +1,106 @@
+{
+  "kind": "build_request",
+  "title": "Add customer login/logout and Account option in storefront",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-16",
+      "text": "Add a customer-facing Account entry point to the storefront navigation (desktop + mobile) that reflects authentication state: when signed out, show a clear \"Login\" action; when signed in, show \"Account\" and a \"Logout\" action.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "login and logout and account option ?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Storefront header shows an Account/Login option alongside existing links (Home, Menu, Contact) on desktop.",
+        "Mobile menu includes the same Account/Login option.",
+        "When the user is not authenticated, the UI offers a \"Login\" action that initiates Internet Identity login via the existing auth hook.",
+        "When the user is authenticated, the UI offers a \"Logout\" action that logs the user out and updates the UI state accordingly without needing a page refresh."
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "text": "Create a new customer Account page route (e.g., \"/account\") that allows an authenticated customer to view and edit their profile fields using the existing backend user profile APIs (name, mobile, address).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "login and logout and account option ?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A new storefront route exists for an Account page and is reachable from the header Account option.",
+        "If the user is signed out and navigates to the Account page, the page prompts them to log in.",
+        "If the user is signed in, the page fetches and displays the caller’s existing profile (if any).",
+        "The page provides a form to save profile changes (name, mobile, address) and shows success/error feedback.",
+        "All user-facing text is in English."
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "text": "Ensure customer authentication state changes (login/logout) correctly invalidate and refetch customer-profile-related React Query data so the Account UI always shows the correct user’s data after switching identities.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "login and logout and account option ?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After login, the Account page loads the authenticated user’s profile without manual refresh.",
+        "After logout, the Account page and header state revert to signed-out state and do not show prior user data.",
+        "After logging in as a different identity, the Account page shows the new identity’s profile data (not cached from the prior identity)."
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "text": "Update backend authorization rules so authenticated non-admin customers can call customer profile endpoints (getCallerUserProfile and saveCallerUserProfile) without hitting authorization traps, while keeping admin-only protections unchanged for admin features.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "login and logout and account option ?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "An authenticated customer principal can successfully call getCallerUserProfile and receive null or their saved profile.",
+        "An authenticated customer principal can successfully call saveCallerUserProfile and subsequently retrieve the saved profile.",
+        "Admin-only APIs (e.g., category/product/promo/order management) remain restricted and do not become accessible to non-admin users."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not edit files under frontend/src/components/ui (read-only shadcn components); compose them instead.",
+    "Do not edit frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts (immutable paths); use their public APIs from other components/pages.",
+    "Backend must remain a single Motoko actor in backend/main.mo; add migration logic only if state schema changes require it."
+  ],
+  "nonGoals": [
+    "Do not add third-party authentication providers (only Internet Identity).",
+    "Do not implement payments or any external integrations as part of this change.",
+    "Do not add customer order-history/account features beyond basic profile + login/logout unless explicitly requested."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

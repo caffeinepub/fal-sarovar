@@ -1,0 +1,234 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 5,
+  "summary": "Build a production-ready full-stack online food ordering web app for the healthy brand “Fal Sarovar” with a premium green/fresh responsive customer storefront (home, menu, cart, checkout, contact) and a secure, beginner-friendly admin panel to manage categories, products, orders, customers, and promo codes, using React+Tailwind (or HTML/CSS/JS) and Firebase (Auth/Database/Hosting), with SEO-friendly fast UX and future-ready payments integration.",
+  "architectural_notes": [
+    "Use Firebase for backend services: Authentication (admin login), Database (products/categories/orders/customers/promo codes), and Hosting.",
+    "Frontend to be built with React + Tailwind CSS (or HTML/CSS/JS) with a mobile-first responsive UI.",
+    "Design data model to support category/product availability toggles and order status workflow (pending/accepted/completed).",
+    "Keep architecture extensible for future payments integration (UPI/cards).",
+    "Decide whether customer accounts use Firebase Authentication (email/phone OTP) and add an Account section in the storefront for login/logout and viewing basic customer info/order history (if enabled)."
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-implement-a-modern-clean-premium-mobile-first-responsive-ui-for-the-fal-sarovar-customer-storefront-with-a-cohesive-green-fresh-visual-theme-colors-typography-spacing-components-applied-consistently-across-all-pages",
+      "title": "Implement a modern, clean, premium, mobile-first responsive UI for the Fal Sarovar customer storefront with a cohesive green/fresh visual theme (colors, typography, spacing, components) applied consistently across all pages.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-customer-facing-pages-and-navigation-for-home-brand-intro-healthy-message-best-sellers-menu-online-store-category-wise-listing-cart-checkout-and-contact",
+      "title": "Create customer-facing pages and navigation for: Home (brand intro, healthy message, best sellers), Menu/Online Store (category-wise listing), Cart, Checkout, and Contact.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-editable-category-management-crud-in-the-admin-panel-seeded-with-these-categories-fruit-salads-plant-based-protein-salads-fresh-juices-no-ice-no-added-sugar-dairy-free-smoothies-detox-drinks-weight-loss-specials-weight-gain-meals",
+      "title": "Implement editable category management (CRUD) in the admin panel, seeded with these categories: Fruit Salads; Plant-Based Protein Salads; Fresh Juices (No Ice, No Added Sugar); Dairy-Free Smoothies; Detox Drinks; Weight Loss Specials; Weight Gain Meals.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-product-management-with-category-wise-listing-and-product-detail-fields-product-name-category-price-description-health-benefits-image-and-an-availability-toggle-in-stock-out-of-stock",
+      "title": "Implement product management with category-wise listing and product detail fields: product name, category, price, description, health benefits, image, and an availability toggle (in stock / out of stock).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-customer-cart-with-add-remove-items-quantity-controls-and-persistent-cart-state-across-page-refreshes-on-the-same-device-session",
+      "title": "Implement a customer cart with add/remove items, quantity controls, and persistent cart state across page refreshes on the same device/session.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-promo-code-input-and-discount-calculation-in-the-cart-checkout-flow-backed-by-admin-managed-promo-codes-supporting-flat-discount-percentage-discount-minimum-order-value-and-expiry-date",
+      "title": "Implement promo code input and discount calculation in the cart/checkout flow, backed by admin-managed promo codes supporting flat discount, percentage discount, minimum order value, and expiry date.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-checkout-to-collect-customer-details-name-mobile-number-address-place-an-order-show-an-order-confirmation-screen-and-store-order-data-in-the-backend",
+      "title": "Implement checkout to collect customer details (name, mobile number, address), place an order, show an order confirmation screen, and store order data in the backend.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-secure-beginner-friendly-admin-panel-with-secure-admin-login-dashboard-overview-product-category-crud-enable-disable-items-order-list-customer-data-order-history-promo-code-management-and-order-status-updates-pending-accepted-completed",
+      "title": "Build a secure, beginner-friendly admin panel with: secure admin login, dashboard overview, product/category CRUD, enable/disable items, order list, customer data + order history, promo code management, and order status updates (pending/accepted/completed).",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-an-order-export-feature-for-admins-to-download-order-data-as-csv-or-similar-from-the-admin-panel",
+      "title": "Provide an order export feature for admins to download order data as CSV (or similar) from the admin panel.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-seo-friendly-structure-for-the-customer-pages-semantic-headings-meaningful-page-titles-meta-descriptions-per-route-and-accessible-components-labels-focus-states-keyboard-navigation",
+      "title": "Add an SEO-friendly structure for the customer pages: semantic headings, meaningful page titles/meta descriptions per route, and accessible components (labels, focus states, keyboard navigation).",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-optimize-perceived-performance-and-loading-lazy-load-non-critical-routes-optimize-and-properly-size-images-and-ensure-the-storefront-remains-fast-on-mobile-devices",
+      "title": "Optimize perceived performance and loading: lazy-load non-critical routes, optimize and properly size images, and ensure the storefront remains fast on mobile devices.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-design-the-order-data-model-and-ui-flow-to-be-easy-to-extend-later-for-online-payments-upi-cards-without-implementing-payments-now-e-g-include-placeholders-for-payment-method-status-transaction-reference",
+      "title": "Design the order data model and UI flow to be easy to extend later for online payments (UPI/cards) without implementing payments now (e.g., include placeholders for payment method/status/transaction reference).",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-customer-facing-and-admin-facing-placeholder-static-brand-assets-and-wire-them-into-the-ui-logo-home-hero-banner-and-category-imagery-as-generated-static-files-under-frontend-public-assets-generated",
+      "title": "Add customer-facing and admin-facing placeholder/static brand assets and wire them into the UI (logo, home hero/banner, and category imagery) as generated static files under frontend/public/assets/generated.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-customer-facing-account-entry-point-to-the-storefront-navigation-desktop-mobile-that-reflects-authentication-state-when-signed-out-show-a-clear-login-action-when-signed-in-show-account-and-a-logout-action",
+      "title": "Add a customer-facing Account entry point to the storefront navigation (desktop + mobile) that reflects authentication state: when signed out, show a clear \"Login\" action; when signed in, show \"Account\" and a \"Logout\" action.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-customer-account-page-route-e-g-account-that-allows-an-authenticated-customer-to-view-and-edit-their-profile-fields-using-the-existing-backend-user-profile-apis-name-mobile-address",
+      "title": "Create a new customer Account page route (e.g., \"/account\") that allows an authenticated customer to view and edit their profile fields using the existing backend user profile APIs (name, mobile, address).",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-customer-authentication-state-changes-login-logout-correctly-invalidate-and-refetch-customer-profile-related-react-query-data-so-the-account-ui-always-shows-the-correct-user-s-data-after-switching-identities",
+      "title": "Ensure customer authentication state changes (login/logout) correctly invalidate and refetch customer-profile-related React Query data so the Account UI always shows the correct user’s data after switching identities.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Customer website with modern premium green/fresh theme, mobile-first responsive layout, and pages: Home, Menu/Store, Cart, Checkout, Contact",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Menu/catalog system with editable categories and product listing including name, category, price, description, health benefits, image, and in-stock/out-of-stock toggle",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Cart and checkout flow: add/remove items, quantity control, promo code input, customer details (name, mobile, address), order confirmation, and admin order notification",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Secure admin panel with dashboard overview; CRUD for categories/products; price/description management; enable/disable items; orders list and order status (pending/accepted/completed)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Admin customer data management: view customer info (name/phone/address) and order history",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Promo codes management in admin: flat/percentage discounts, minimum order value, expiry date",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Order management extras: export order data",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Non-functional requirements: SEO-friendly structure, fast loading performance, clean scalable code, and easy future upgrade path for online payments (UPI/cards)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Beginner-friendly admin UX suitable for non-technical owner to manage store content and orders",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Implement admin-visible \"new order\" notification behavior within the app (without external messaging): highlight new orders and provide a clear indicator/count since the last admin view.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Implement backend data models and APIs in the single Motoko actor to support: categories, products (including availability), promo codes, carts/checkout order placement, orders with status, and customer lookup by phone (or derived customer index) for order history.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Add customer account option with login/logout (customer authentication and account entry point in the storefront navigation)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Update backend authorization rules so authenticated non-admin customers can call customer profile endpoints (getCallerUserProfile and saveCallerUserProfile) without hitting authorization traps, while keeping admin-only protections unchanged for admin features.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Fal Sarovar",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --radius: 0.75rem;
+        /* Fresh green palette for Fal Sarovar */
+        --background: 0.99 0 0;
+        --foreground: 0.20 0 0;
+        --card: 1 0 0;
+        --card-foreground: 0.20 0 0;
+        --popover: 1 0 0;
+        --popover-foreground: 0.20 0 0;
+        /* Primary: Fresh green */
+        --primary: 0.55 0.15 145;
+        --primary-foreground: 0.99 0 0;
+        /* Secondary: Light sage */
+        --secondary: 0.92 0.04 145;
+        --secondary-foreground: 0.30 0 0;
+        --muted: 0.95 0.02 145;
+        --muted-foreground: 0.50 0 0;
+        --accent: 0.88 0.08 145;
+        --accent-foreground: 0.25 0 0;
+        --destructive: 0.55 0.22 25;
+        --destructive-foreground: 0.99 0 0;
+        --border: 0.88 0.03 145;
+        --input: 0.88 0.03 145;
+        --ring: 0.55 0.15 145;
+        --chart-1: 0.55 0.15 145;
+        --chart-2: 0.65 0.18 85;
+        --chart-3: 0.70 0.12 180;
+        --chart-4: 0.60 0.20 45;
+        --chart-5: 0.50 0.18 200;
+        --sidebar: 0.98 0.01 145;
+        --sidebar-foreground: 0.25 0 0;
+        --sidebar-primary: 0.55 0.15 145;
+        --sidebar-primary-foreground: 0.99 0 0;
+        --sidebar-accent: 0.92 0.04 145;
+        --sidebar-accent-foreground: 0.30 0 0;
+        --sidebar-border: 0.88 0.03 145;
+        --sidebar-ring: 0.55 0.15 145;
+    }
+
+    .dark {
+        --background: 0.15 0 0;
+        --foreground: 0.95 0 0;
+        --card: 0.18 0 0;
+        --card-foreground: 0.95 0 0;
+        --popover: 0.20 0 0;
+        --popover-foreground: 0.95 0 0;
+        /* Primary: Bright green for dark mode */
+        --primary: 0.65 0.18 145;
+        --primary-foreground: 0.15 0 0;
+        --secondary: 0.25 0.05 145;
+        --secondary-foreground: 0.95 0 0;
+        --muted: 0.22 0.03 145;
+        --muted-foreground: 0.65 0 0;
+        --accent: 0.30 0.08 145;
+        --accent-foreground: 0.95 0 0;
+        --destructive: 0.60 0.22 25;
+        --destructive-foreground: 0.15 0 0;
+        --border: 0.25 0.04 145;
+        --input: 0.25 0.04 145;
+        --ring: 0.65 0.18 145;
+        --chart-1: 0.65 0.18 145;
+        --chart-2: 0.70 0.20 85;
+        --chart-3: 0.75 0.15 180;
+        --chart-4: 0.68 0.22 45;
+        --chart-5: 0.58 0.20 200;
+        --sidebar: 0.18 0 0;
+        --sidebar-foreground: 0.95 0 0;
+        --sidebar-primary: 0.65 0.18 145;
+        --sidebar-primary-foreground: 0.15 0 0;
+        --sidebar-accent: 0.25 0.05 145;
+        --sidebar-accent-foreground: 0.95 0 0;
+        --sidebar-border: 0.25 0.04 145;
+        --sidebar-ring: 0.65 0.18 145;
+    }
+
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+}
+
+@layer components {
+    .container-custom {
+        @apply container mx-auto px-4 sm:px-6 lg:px-8;
+    }
+    
+    .section-padding {
+        @apply py-12 md:py-16 lg:py-20;
+    }
+}

@@ -1,0 +1,66 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-add-a-customer-facing-account-entry-point-to-the-storefront-navigation-desktop-mobile-that-reflects-authentication-state-when-signed-out-show-a-clear-login-action-when-signed-in-show-account-and-a-logout-action",
+      "featureTitle": "Add a customer-facing Account entry point to the storefront navigation (desktop + mobile) that reflects authentication state: when signed out, show a clear \"Login\" action; when signed in, show \"Account\" and a \"Logout\" action.",
+      "files": [
+        "frontend/src/components/site/StorefrontHeader.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-16"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-new-customer-account-page-route-e-g-account-that-allows-an-authenticated-customer-to-view-and-edit-their-profile-fields-using-the-existing-backend-user-profile-apis-name-mobile-address",
+      "featureTitle": "Create a new customer Account page route (e.g., \"/account\") that allows an authenticated customer to view and edit their profile fields using the existing backend user profile APIs (name, mobile, address).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/hooks/queries/useAuth.ts",
+        "frontend/src/pages/storefront/AccountPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-17"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-customer-authentication-state-changes-login-logout-correctly-invalidate-and-refetch-customer-profile-related-react-query-data-so-the-account-ui-always-shows-the-correct-user-s-data-after-switching-identities",
+      "featureTitle": "Ensure customer authentication state changes (login/logout) correctly invalidate and refetch customer-profile-related React Query data so the Account UI always shows the correct user’s data after switching identities.",
+      "files": [
+        "frontend/src/components/site/StorefrontHeader.tsx",
+        "frontend/src/hooks/queries/useAuth.ts",
+        "frontend/src/pages/storefront/AccountPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-18"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
